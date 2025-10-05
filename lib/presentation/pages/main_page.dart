@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/bloc/quran/filtered_quran_event.dart';
 import '../../core/bloc/quran/filtered_quran_state.dart';
 import '../../core/bloc/quran/filtered_quran_bloc.dart';
+import '../../core/utils/text.dart';
 import '../../locator.dart';
 import '../../core/data/model/surah.dart';
 import '../../core/utils/quran_preferences.dart';
@@ -222,6 +223,11 @@ class _MainPageState extends State<MainPage> {
                                     decoration: InputDecoration(
                                       labelText: 'بحث',
                                       border: const OutlineInputBorder(),
+                                      helperText: state.searchTerm.isNotEmpty
+                                          ? arabicResultLabel(
+                                              state.filteredVerses.length,
+                                            )
+                                          : null,
                                       suffixIcon:
                                           _searchController.text.isNotEmpty
                                           ? Padding(

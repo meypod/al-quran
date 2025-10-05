@@ -1,3 +1,5 @@
+import 'arabic_number_util.dart';
+
 final RegExp alifRegExp = RegExp(r'[اإأآ\u0671\u0670]', unicode: true);
 final RegExp yaRegExp = RegExp(r'[يیئ]', unicode: true);
 final RegExp differentKafs = RegExp(r'[كک]', unicode: true);
@@ -13,4 +15,11 @@ String simplifyText(String input) {
       .replaceAll(yaRegExp, 'ي')
       .replaceAll(differentKafs, 'ک')
       .replaceAll(abnormalChars, '');
+}
+
+String arabicResultLabel(int count) {
+  if (count == 0) return 'لا نتائج';
+  if (count == 1) return 'نتيجة واحدة';
+  if (count == 2) return 'نتيجتان';
+  return '${toArabicNumber(count)} نتائج';
 }
