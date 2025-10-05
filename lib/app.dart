@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/bloc/font_size_bloc.dart';
-import 'presentation/pages/main_page.dart';
+import 'locator.dart';
+import 'package:go_router/go_router.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
+    return BlocProvider<FontSizeBloc>(
       create: (_) => FontSizeBloc()..add(LoadFontSize()),
       child: BlocBuilder<FontSizeBloc, FontSizeState>(
         builder: (context, state) {
-          return MaterialApp(
-            title: 'Flutter Demo',
+          return MaterialApp.router(
+            title: 'Simple Quran',
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
                 seedColor: Colors.deepPurple,
@@ -61,7 +62,7 @@ class MyApp extends StatelessWidget {
               ).apply(fontSizeFactor: state.fontSize / 16.0),
             ),
             themeMode: ThemeMode.system,
-            home: const MainPage(),
+            routerConfig: getIt<GoRouter>(),
           );
         },
       ),

@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../core/data/provider/quran_text_provider.dart';
-import 'surah_list_page.dart';
+import '../../core/bloc/quran/quran_bloc.dart';
+import '../../locator.dart';
+import '../../core/data/model/surah.dart';
+import '../../core/utils/quran_preferences.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../widgets/VerseRenderer.dart';
+
+import 'package:go_router/go_router.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -11,54 +17,84 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  late Future<List<String>> _quranLinesFuture;
+  void _saveScrollOffset() {
+    QuranPreferences.setScrollPosition(_scrollController.offset);
+  }
+
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _quranLinesFuture = QuranTextProvider.loadQuranText();
+    _scrollController.addListener(_saveScrollOffset);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_saveScrollOffset);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Simple Quran'),
-        leading: IconButton(
-          icon: const Icon(Icons.menu_book),
-          tooltip: 'سور القرآن',
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) =>
-                    // ignore: prefer_const_constructors
-                    SurahListPage(),
-              ),
-            );
-          },
-        ),
-      ),
-      body: FutureBuilder<List<String>>(
-        future: _quranLinesFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: \\${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No data found.'));
-          }
-          final lines = snapshot.data!;
-          return ListView.separated(
-            itemCount: lines.length,
-            cacheExtent: 100,
-            itemBuilder: (context, index) => ListTile(
-              title: Text(lines[index], textDirection: TextDirection.rtl),
-            ),
-            separatorBuilder: (context, index) => const Divider(height: 1),
+    final quranBloc = getIt<QuranBloc>();
+    return BlocBuilder<QuranBloc, QuranState>(
+      bloc: quranBloc,
+      builder: (context, state) {
+        if (state is QuranLoading || state is QuranInitial) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
           );
-        },
-      ),
+        } else if (state is QuranError) {
+          return Scaffold(
+            body: Center(
+              child: Text('حدث خطأ أثناء تحميل القرآن: ${state.message}'),
+            ),
+          );
+        } else if (state is QuranLoaded) {
+          final selectedSurah = state.selectedSurah;
+          final surahName = selectedSurah.name;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_scrollController.hasClients &&
+                _scrollController.offset != state.scrollOffset) {
+              _scrollController.jumpTo(state.scrollOffset);
+            }
+          });
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(surahName, textAlign: TextAlign.center),
+              centerTitle: true,
+              leading: IconButton(
+                icon: const Icon(Icons.menu_book),
+                tooltip: 'سور القرآن',
+                onPressed: () async {
+                  final selected = await context.push<Surah>('/surahs');
+                  if (selected is Surah) {
+                    quranBloc.add(ChangeSurah(surahId: selected.id));
+                  }
+                },
+              ),
+            ),
+            body: ListView.separated(
+              controller: _scrollController,
+              itemCount: state.filteredVerses.length,
+              cacheExtent: 100,
+              itemBuilder: (context, index) {
+                final verse = state.filteredVerses[index];
+                return VerseRenderer(
+                  verseText: verse.verseText,
+                  verseNumber: verse.verseNumber,
+                );
+              },
+              separatorBuilder: (context, index) => const Divider(height: 1),
+            ),
+          );
+        }
+        return const Scaffold(
+          body: Center(child: Text('لم يتم العثور على بيانات.')),
+        );
+      },
     );
   }
 }
