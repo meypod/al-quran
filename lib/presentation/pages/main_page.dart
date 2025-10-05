@@ -253,24 +253,34 @@ class _MainPageState extends State<MainPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                children: [
-                                  Checkbox(
-                                    value: _searchAllQuran,
-                                    onChanged: (val) {
-                                      setState(() {
-                                        _searchAllQuran = val ?? false;
-                                      });
-                                      QuranPreferences.setSearchAllQuran(
-                                        val ?? false,
-                                      );
-                                    },
-                                  ),
-                                  const Text(
-                                    'بحث في كل القرآن',
-                                    textDirection: TextDirection.rtl,
-                                  ),
-                                ],
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _searchAllQuran = !_searchAllQuran;
+                                  });
+                                  QuranPreferences.setSearchAllQuran(
+                                    _searchAllQuran,
+                                  );
+                                },
+                                child: Row(
+                                  children: [
+                                    Checkbox(
+                                      value: _searchAllQuran,
+                                      onChanged: (val) {
+                                        setState(() {
+                                          _searchAllQuran = val ?? false;
+                                        });
+                                        QuranPreferences.setSearchAllQuran(
+                                          val ?? false,
+                                        );
+                                      },
+                                    ),
+                                    const Text(
+                                      'بحث في كل القرآن',
+                                      textDirection: TextDirection.rtl,
+                                    ),
+                                  ],
+                                ),
                               ),
                               ElevatedButton(
                                 onPressed: () => _submitSearch(context),
