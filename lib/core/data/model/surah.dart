@@ -5,6 +5,7 @@ class Surah {
   final int totalVerses;
   final int startsAtJuz;
   final int endsAtJuz;
+  final bool hasBismillah;
 
   Surah({
     required this.id,
@@ -13,6 +14,7 @@ class Surah {
     required this.totalVerses,
     required this.startsAtJuz,
     required this.endsAtJuz,
+    required this.hasBismillah,
   });
 
   factory Surah.fromLine(String line) {
@@ -24,6 +26,7 @@ class Surah {
       totalVerses: int.parse(parts[3]),
       startsAtJuz: int.parse(parts[4]),
       endsAtJuz: int.parse(parts[5]),
+      hasBismillah: int.parse(parts[6]) as bool,
     );
   }
 }
