@@ -21,6 +21,13 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  void _clearSearch(BuildContext context) {
+    setState(() {
+      _searchController.clear();
+    });
+    _submitSearch(context);
+  }
+
   void _saveScrollOffset() {
     QuranPreferences.setScrollPosition(_scrollController.offset);
   }
@@ -159,6 +166,12 @@ class _MainPageState extends State<MainPage> {
                   ],
                 ),
                 actions: [
+                  if (_searchController.text.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.clear),
+                      tooltip: 'مسح البحث',
+                      onPressed: () => _clearSearch(context),
+                    ),
                   IconButton(
                     icon: const Icon(Icons.search),
                     tooltip: 'بحث',
@@ -192,13 +205,39 @@ class _MainPageState extends State<MainPage> {
                         children: [
                           Directionality(
                             textDirection: TextDirection.rtl,
-                            child: TextField(
-                              controller: _searchController,
-                              decoration: const InputDecoration(
-                                labelText: 'بحث',
-                                border: OutlineInputBorder(),
-                              ),
-                              onSubmitted: (_) => _submitSearch(context),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _searchController,
+                                    decoration: InputDecoration(
+                                      labelText: 'بحث',
+                                      border: const OutlineInputBorder(),
+                                      suffixIcon:
+                                          _searchController.text.isNotEmpty
+                                          ? Padding(
+                                              padding:
+                                                  const EdgeInsetsDirectional.only(
+                                                    end: 12.0,
+                                                  ),
+                                              child: IconButton(
+                                                icon: Icon(
+                                                  Icons.clear,
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).colorScheme.error,
+                                                ),
+                                                tooltip: 'مسح البحث',
+                                                onPressed: () =>
+                                                    _clearSearch(context),
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                    onSubmitted: (_) => _submitSearch(context),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 8),
