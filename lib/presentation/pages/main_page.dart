@@ -28,6 +28,9 @@ class _MainPageState extends State<MainPage> {
   final ScrollController _scrollController = ScrollController();
 
   bool _showFontDrawer = false;
+  bool _showSearchDrawer = false;
+  final TextEditingController _searchController = TextEditingController();
+  bool _searchAllQuran = false;
 
   @override
   void initState() {
@@ -44,8 +47,30 @@ class _MainPageState extends State<MainPage> {
 
   void _toggleFontDrawer() {
     setState(() {
+      if (!_showFontDrawer) {
+        _showSearchDrawer = false;
+      }
       _showFontDrawer = !_showFontDrawer;
     });
+  }
+
+  void _toggleSearchDrawer() {
+    setState(() {
+      if (!_showSearchDrawer) {
+        _showFontDrawer = false;
+      }
+      _showSearchDrawer = !_showSearchDrawer;
+    });
+  }
+
+  void _submitSearch(BuildContext context) {
+    final bloc = context.read<FilteredQuranBloc>();
+    bloc.add(
+      FilteredQuranUpdateSearchTerm(
+        _searchController.text.trim(),
+        _searchAllQuran,
+      ),
+    );
   }
 
   @override
@@ -53,7 +78,29 @@ class _MainPageState extends State<MainPage> {
     final filteredQuranBloc = getIt<FilteredQuranBloc>();
     return BlocProvider<FilteredQuranBloc>.value(
       value: filteredQuranBloc,
-      child: BlocBuilder<FilteredQuranBloc, FilteredQuranState>(
+      child: BlocConsumer<FilteredQuranBloc, FilteredQuranState>(
+        listenWhen: (previous, current) =>
+            current is FilteredQuranLoaded && previous != current,
+        listener: (context, state) {
+          if (state is FilteredQuranLoaded) {
+            // Set search term and search all Quran state after loading
+            if (_searchController.text != state.searchTerm) {
+              _searchController.text = state.searchTerm;
+            }
+            if (_searchAllQuran != state.searchAllQuran) {
+              setState(() {
+                _searchAllQuran = state.searchAllQuran;
+              });
+            }
+            // If searchTerm is not empty, open the search drawer
+            if (state.searchTerm.isNotEmpty && !_showSearchDrawer) {
+              setState(() {
+                _showSearchDrawer = true;
+                _showFontDrawer = false;
+              });
+            }
+          }
+        },
         builder: (context, state) {
           if (state is FilteredQuranInitial || state is FilteredQuranLoading) {
             return const Scaffold(
@@ -67,7 +114,12 @@ class _MainPageState extends State<MainPage> {
             );
           } else if (state is FilteredQuranLoaded) {
             final selectedSurah = state.selectedSurah;
-            final surahName = selectedSurah?.name ?? "بحث";
+            final String surahName;
+            if (state.searchTerm.isEmpty) {
+              surahName = selectedSurah?.name ?? "";
+            } else {
+              surahName = "بحث";
+            }
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (_scrollController.hasClients &&
                   _scrollController.offset != state.scrollOffset) {
@@ -106,7 +158,13 @@ class _MainPageState extends State<MainPage> {
                     ),
                   ],
                 ),
-                actions: [],
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.search),
+                    tooltip: 'بحث',
+                    onPressed: _toggleSearchDrawer,
+                  ),
+                ],
               ),
               body: Column(
                 mainAxisSize: MainAxisSize.max,
@@ -120,36 +178,96 @@ class _MainPageState extends State<MainPage> {
                       child: const FontAdjuster(),
                     ),
                   ),
-                  Expanded(
-                    child: NotificationListener<ScrollNotification>(
-                      onNotification: (notification) {
-                        if (notification is ScrollEndNotification) {
-                          context.read<FilteredQuranBloc>().add(
-                            FilteredQuranUpdateScrollOffset(
-                              _scrollController.offset,
+                  ExpandableSection(
+                    expanded: _showSearchDrawer,
+                    animationDuration: const Duration(milliseconds: 250),
+                    child: Container(
+                      color: Theme.of(context).canvasColor,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 16,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Directionality(
+                            textDirection: TextDirection.rtl,
+                            child: TextField(
+                              controller: _searchController,
+                              decoration: const InputDecoration(
+                                labelText: 'بحث',
+                                border: OutlineInputBorder(),
+                              ),
+                              onSubmitted: (_) => _submitSearch(context),
                             ),
-                          );
-                        }
-                        return false;
-                      },
-                      child: ListView.separated(
-                        key: PageStorageKey(
-                          "surah-scroll-${state.selectedSurah?.id ?? 0}", // 0 is for search
-                        ),
-                        controller: _scrollController,
-                        itemCount: state.filteredVerses.length,
-                        cacheExtent: 100,
-                        itemBuilder: (context, index) {
-                          final verse = state.filteredVerses[index];
-                          return VerseWidget(
-                            verseText: verse.verseText,
-                            verseNumber: verse.verseNumber,
-                          );
-                        },
-                        separatorBuilder: (context, index) =>
-                            const Divider(height: 1),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    value: _searchAllQuran,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        _searchAllQuran = val ?? false;
+                                      });
+                                      QuranPreferences.setSearchAllQuran(
+                                        val ?? false,
+                                      );
+                                    },
+                                  ),
+                                  const Text(
+                                    'بحث في كل القرآن',
+                                    textDirection: TextDirection.rtl,
+                                  ),
+                                ],
+                              ),
+                              ElevatedButton(
+                                onPressed: () => _submitSearch(context),
+                                child: const Text('بحث'),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
+                  ),
+                  Expanded(
+                    child:
+                        state.filteredVerses.isEmpty &&
+                            state.searchTerm.isNotEmpty
+                        ? const Center(child: Text('لا توجد نتائج'))
+                        : NotificationListener<ScrollNotification>(
+                            onNotification: (notification) {
+                              if (notification is ScrollEndNotification) {
+                                context.read<FilteredQuranBloc>().add(
+                                  FilteredQuranUpdateScrollOffset(
+                                    _scrollController.offset,
+                                  ),
+                                );
+                              }
+                              return false;
+                            },
+                            child: ListView.separated(
+                              key: PageStorageKey(
+                                "surah-scroll-{state.selectedSurah?.id ?? 0}", // 0 is for search
+                              ),
+                              controller: _scrollController,
+                              itemCount: state.filteredVerses.length,
+                              cacheExtent: 100,
+                              itemBuilder: (context, index) {
+                                final verse = state.filteredVerses[index];
+                                return VerseWidget(
+                                  verseText: verse.verseText,
+                                  verseNumber: verse.verseNumber,
+                                );
+                              },
+                              separatorBuilder: (context, index) =>
+                                  const Divider(height: 1),
+                            ),
+                          ),
                   ),
                 ],
               ),

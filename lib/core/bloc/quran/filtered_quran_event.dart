@@ -23,7 +23,8 @@ class FilteredQuranChangeSurah extends FilteredQuranEvent {
 
 class FilteredQuranUpdateSearchTerm extends FilteredQuranEvent {
   final String searchTerm;
-  FilteredQuranUpdateSearchTerm(this.searchTerm);
+  final bool searchAllQuran;
+  FilteredQuranUpdateSearchTerm(this.searchTerm, this.searchAllQuran);
 }
 
 class FilteredQuranUpdateScrollOffset extends FilteredQuranEvent {

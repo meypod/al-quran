@@ -17,10 +17,12 @@ class FilteredQuranLoaded extends FilteredQuranState {
   final List<QuranVerse> filteredVerses;
   final double scrollOffset;
   final String searchTerm;
+  final bool searchAllQuran;
   FilteredQuranLoaded({
     required this.selectedSurah,
     required this.filteredVerses,
     required this.scrollOffset,
     required this.searchTerm,
+    required this.searchAllQuran,
   });
 }

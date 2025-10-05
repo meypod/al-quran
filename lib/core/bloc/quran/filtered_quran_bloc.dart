@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/model/quran_verse.dart';
@@ -15,6 +14,7 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
   int _selectedSurahId = 1;
   double _scrollOffset = 0.0;
   String _searchTerm = '';
+  bool _searchAllQuran = false;
 
   FilteredQuranBloc({required this.quranBloc}) : super(FilteredQuranInitial()) {
     _quranStream = quranBloc.stream;
@@ -45,18 +45,26 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
     });
 
     on<FilteredQuranInit>((event, emit) async {
-      _selectedSurahId =
-          await QuranPreferences.getSelectedSurah() ?? _selectedSurahId;
-      _scrollOffset =
-          await QuranPreferences.getScrollPosition() ?? _scrollOffset;
+      final prefs = await Future.wait([
+        QuranPreferences.getSelectedSurah(),
+        QuranPreferences.getScrollPosition(),
+        QuranPreferences.getSearchTerm(),
+        QuranPreferences.getSearchAllQuran(),
+      ]);
+      _selectedSurahId = (prefs[0] as int?) ?? _selectedSurahId;
+      _scrollOffset = (prefs[1] as double?) ?? _scrollOffset;
+      _searchTerm = (prefs[2] as String?) ?? _searchTerm;
+      _searchAllQuran = (prefs[3] as bool?) ?? _searchAllQuran;
       emit(_buildLoaded(event.quranState));
     });
 
     on<FilteredQuranChangeSurah>((event, emit) async {
       _selectedSurahId = event.surahId;
-      await QuranPreferences.setSelectedSurah(_selectedSurahId);
       _scrollOffset = 0.0;
-      await QuranPreferences.setScrollPosition(_scrollOffset);
+      await Future.wait([
+        QuranPreferences.setSelectedSurah(_selectedSurahId),
+        QuranPreferences.setScrollPosition(_scrollOffset),
+      ]);
       final quranState = _getQuranLoaded();
       if (quranState != null) {
         emit(_buildLoaded(quranState));
@@ -65,6 +73,11 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
 
     on<FilteredQuranUpdateSearchTerm>((event, emit) async {
       _searchTerm = event.searchTerm;
+      _searchAllQuran = event.searchAllQuran;
+      await Future.wait([
+        QuranPreferences.setSearchTerm(_searchTerm),
+        QuranPreferences.setSearchAllQuran(_searchAllQuran),
+      ]);
       final quranState = _getQuranLoaded();
       if (quranState != null) {
         emit(_buildLoaded(quranState));
@@ -74,10 +87,6 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
     on<FilteredQuranUpdateScrollOffset>((event, emit) async {
       _scrollOffset = event.scrollOffset;
       await QuranPreferences.setScrollPosition(_scrollOffset);
-      final quranState = _getQuranLoaded();
-      if (quranState != null) {
-        emit(_buildLoaded(quranState));
-      }
     });
   }
 
@@ -87,11 +96,17 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
   }
 
   FilteredQuranLoaded _buildLoaded(QuranLoaded quranState) {
-    final selectedSurah = quranState.surahs.firstWhereOrNull(
+    final selectedSurah = quranState.surahs.firstWhere(
       (s) => s.id == _selectedSurahId,
+      orElse: () => quranState.surahs[0],
     );
-    final filtered = _filterVerses(quranState, selectedSurah, _searchTerm);
-    if (selectedSurah?.hasBismillah == true) {
+    final isFullSearch = _searchTerm.isNotEmpty && _searchAllQuran;
+    final filtered = _filterVerses(
+      quranState,
+      isFullSearch ? null : selectedSurah,
+      _searchTerm,
+    );
+    if (!isFullSearch && selectedSurah.hasBismillah == true) {
       filtered.insert(0, quranState.bismillah);
     }
     return FilteredQuranLoaded(
@@ -99,6 +114,7 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
       filteredVerses: filtered,
       scrollOffset: _scrollOffset,
       searchTerm: _searchTerm,
+      searchAllQuran: _searchAllQuran,
     );
   }
 
