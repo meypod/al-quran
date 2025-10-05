@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:simple_quran/core/bloc/font_size_bloc.dart';
 import 'core/bloc/quran/filtered_quran_bloc.dart';
 import 'core/bloc/quran/quran_bloc.dart';
+import 'core/bloc/surah_list/surah_list_bloc.dart';
 import 'presentation/pages/main_page.dart';
 import 'presentation/pages/surah_list_page.dart';
 import 'package:go_router/go_router.dart';
@@ -15,6 +16,22 @@ void setupLocator() {
   getIt.registerSingleton<FilteredQuranBloc>(
     FilteredQuranBloc(quranBloc: quranBloc),
   );
+  // Register SurahListBloc after surahs are loaded
+  quranBloc.stream.listen((state) {
+    if (state is QuranLoaded) {
+      if (!getIt.isRegistered<SurahListBloc>()) {
+        getIt.registerSingleton<SurahListBloc>(
+          SurahListBloc(allSurahs: state.surahs),
+        );
+      } else {
+        // If already registered, update the surahs list (recreate bloc)
+        getIt.unregister<SurahListBloc>();
+        getIt.registerSingleton<SurahListBloc>(
+          SurahListBloc(allSurahs: state.surahs),
+        );
+      }
+    }
+  });
   // After initializing FilteredQuranBloc, initialize QuranBloc
   quranBloc.add(InitQuran());
   getIt.registerLazySingleton<GoRouter>(

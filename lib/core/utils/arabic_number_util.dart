@@ -33,3 +33,13 @@ String toEasternArabicNumber(int number) {
 }
 
 var toArabicNumber = toIndicArabicNumber;
+
+final RegExp otherNumbersRegexp = RegExp(r'[\u0660-\u0669\u06F0-\u06F9]');
+
+/// Converts a string containing Arabic-Indic or Eastern Arabic numerals to English digits.
+String toEnglishDigits(String s) {
+  return s.replaceAllMapped(otherNumbersRegexp, (match) {
+    final codeUnit = match.group(0)!.codeUnitAt(0);
+    return String.fromCharCode(0x30 + (codeUnit & 0xF));
+  });
+}
