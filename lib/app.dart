@@ -9,8 +9,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<FontSizeBloc>(
-      create: (_) => FontSizeBloc()..add(LoadFontSize()),
+    final fontSizeBloc = getIt<FontSizeBloc>();
+    return BlocProvider<FontSizeBloc>.value(
+      value: fontSizeBloc,
       child: BlocBuilder<FontSizeBloc, FontSizeState>(
         builder: (context, state) {
           return MaterialApp.router(

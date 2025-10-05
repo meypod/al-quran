@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:simple_quran/core/bloc/font_size_bloc.dart';
 import 'core/bloc/quran/filtered_quran_bloc.dart';
 import 'core/bloc/quran/quran_bloc.dart';
 import 'presentation/pages/main_page.dart';
@@ -8,7 +9,8 @@ import 'package:go_router/go_router.dart';
 final GetIt getIt = GetIt.instance;
 
 void setupLocator() {
-  getIt.registerSingleton<QuranBloc>(QuranBloc());
+  getIt.registerLazySingleton(() => FontSizeBloc()..add(LoadFontSize()));
+  getIt.registerSingleton(QuranBloc());
   final quranBloc = getIt<QuranBloc>();
   getIt.registerSingleton<FilteredQuranBloc>(
     FilteredQuranBloc(quranBloc: quranBloc),
