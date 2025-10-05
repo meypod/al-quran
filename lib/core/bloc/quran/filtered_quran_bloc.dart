@@ -96,17 +96,16 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
   }
 
   FilteredQuranLoaded _buildLoaded(QuranLoaded quranState) {
-    final selectedSurah = quranState.surahs.firstWhere(
-      (s) => s.id == _selectedSurahId,
-      orElse: () => quranState.surahs[0],
-    );
+    final selectedSurah =
+        quranState.surahs.elementAtOrNull(_selectedSurahId - 1) ??
+        quranState.surahs[0];
     final isFullSearch = _searchTerm.isNotEmpty && _searchAllQuran;
     final filtered = _filterVerses(
       quranState,
       isFullSearch ? null : selectedSurah,
       _searchTerm,
     );
-    if (!isFullSearch && selectedSurah.hasBismillah == true) {
+    if (!_searchTerm.isNotEmpty && selectedSurah.hasBismillah == true) {
       filtered.insert(0, quranState.bismillah);
     }
     return FilteredQuranLoaded(

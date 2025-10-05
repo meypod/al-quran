@@ -318,8 +318,8 @@ class _MainPageState extends State<MainPage> {
                               itemBuilder: (context, index) {
                                 final verse = state.filteredVerses[index];
                                 return VerseWidget(
-                                  verseText: verse.verseText,
-                                  verseNumber: verse.verseNumber,
+                                  verse: verse,
+                                  isSearchResult: state.searchTerm.isNotEmpty,
                                 );
                               },
                               separatorBuilder: (context, index) =>
