@@ -37,7 +37,10 @@ class FontSizeBloc extends Bloc<FontSizeEvent, FontSizeState> {
     DecreaseFontSize event,
     Emitter<FontSizeState> emit,
   ) async {
-    final newSize = state.fontSize > 1 ? state.fontSize - 1 : 1;
+    final minFontSize = 13.0;
+    final newSize = state.fontSize > minFontSize
+        ? state.fontSize - 1
+        : minFontSize;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble(_fontSizeKey, newSize.toDouble());
     emit(FontSizeState(fontSize: newSize.toDouble()));
