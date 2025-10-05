@@ -62,9 +62,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/quran/quran-uthmani.txt
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -91,3 +90,11 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  fonts:
+    - family: Hafs
+      fonts:
+        - asset: assets/fonts/hafs.otf
+        - asset: assets/fonts/hafs.woff
+        - asset: assets/fonts/hafs.woff2
+        - asset: assets/fonts/hafs.eot
