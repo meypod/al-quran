@@ -1,12 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../utils/quran_preferences.dart';
 
 part 'font_size_event.dart';
 part 'font_size_state.dart';
 
 class FontSizeBloc extends Bloc<FontSizeEvent, FontSizeState> {
-  static const String _fontSizeKey = 'font_size';
-  static const double _defaultFontSize = 16.0;
+  static const double _defaultFontSize = 22.0;
 
   FontSizeBloc() : super(const FontSizeState(fontSize: _defaultFontSize)) {
     on<LoadFontSize>(_onLoadFontSize);
@@ -18,8 +18,7 @@ class FontSizeBloc extends Bloc<FontSizeEvent, FontSizeState> {
     LoadFontSize event,
     Emitter<FontSizeState> emit,
   ) async {
-    final prefs = await SharedPreferences.getInstance();
-    final fontSize = prefs.getDouble(_fontSizeKey) ?? _defaultFontSize;
+    final fontSize = await QuranPreferences.getFontSize() ?? _defaultFontSize;
     emit(FontSizeState(fontSize: fontSize));
   }
 
@@ -27,9 +26,9 @@ class FontSizeBloc extends Bloc<FontSizeEvent, FontSizeState> {
     IncreaseFontSize event,
     Emitter<FontSizeState> emit,
   ) async {
-    final newSize = state.fontSize + 1;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble(_fontSizeKey, newSize.toDouble());
+    final step = event.step;
+    final newSize = state.fontSize + step;
+    await QuranPreferences.setFontSize(newSize.toDouble());
     emit(FontSizeState(fontSize: newSize.toDouble()));
   }
 
@@ -38,11 +37,11 @@ class FontSizeBloc extends Bloc<FontSizeEvent, FontSizeState> {
     Emitter<FontSizeState> emit,
   ) async {
     final minFontSize = 13.0;
+    final step = event.step;
     final newSize = state.fontSize > minFontSize
-        ? state.fontSize - 1
+        ? (state.fontSize - step).clamp(minFontSize, double.infinity)
         : minFontSize;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble(_fontSizeKey, newSize.toDouble());
+    await QuranPreferences.setFontSize(newSize.toDouble());
     emit(FontSizeState(fontSize: newSize.toDouble()));
   }
 }

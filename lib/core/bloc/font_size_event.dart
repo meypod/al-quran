@@ -4,6 +4,12 @@ abstract class FontSizeEvent {}
 
 class LoadFontSize extends FontSizeEvent {}
 
-class IncreaseFontSize extends FontSizeEvent {}
+class IncreaseFontSize extends FontSizeEvent {
+  final double step;
+  IncreaseFontSize({this.step = 1.0});
+}
 
-class DecreaseFontSize extends FontSizeEvent {}
+class DecreaseFontSize extends FontSizeEvent {
+  final double step;
+  DecreaseFontSize({this.step = 1.0});
+}

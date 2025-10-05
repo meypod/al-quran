@@ -5,6 +5,17 @@ class QuranPreferences {
   static const String scrollPositionKey = 'scroll_position';
   static const String searchTermKey = 'search_term';
   static const String searchAllQuranKey = 'search_all_quran';
+  static const String fontSizeKey = 'font_size';
+
+  static Future<void> setFontSize(double value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(fontSizeKey, value);
+  }
+
+  static Future<double?> getFontSize() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble(fontSizeKey);
+  }
 
   static Future<void> setSelectedSurah(int surahId) async {
     final prefs = await SharedPreferences.getInstance();
