@@ -67,6 +67,9 @@ class _MainPageState extends State<MainPage> {
         _showFontDrawer = false;
       }
       _showSearchDrawer = !_showSearchDrawer;
+      if (!_showSearchDrawer) {
+        FocusScope.of(context).unfocus();
+      }
     });
   }
 
