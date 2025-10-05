@@ -26,7 +26,7 @@ class Surah {
       totalVerses: int.parse(parts[3]),
       startsAtJuz: int.parse(parts[4]),
       endsAtJuz: int.parse(parts[5]),
-      hasBismillah: int.parse(parts[6]) as bool,
+      hasBismillah: parts[6] == "1",
     );
   }
 }

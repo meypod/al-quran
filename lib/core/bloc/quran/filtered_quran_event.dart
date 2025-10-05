@@ -1,4 +1,13 @@
-part of 'filtered_quran_bloc.dart';
+import 'quran_bloc.dart';
+
+class FilteredQuranLoadingEvent extends FilteredQuranEvent {}
+
+class FilteredQuranErrorEvent extends FilteredQuranEvent {
+  final String message;
+  FilteredQuranErrorEvent(this.message);
+}
+
+class FilteredQuranInitialEvent extends FilteredQuranEvent {}
 
 abstract class FilteredQuranEvent {}
 

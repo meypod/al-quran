@@ -84,7 +84,9 @@ class SurahListPage extends StatelessWidget {
             );
           } else if (state is QuranError) {
             return Center(
-              child: Text('حدث خطأ أثناء تحميل السور: ${state.message}'),
+              child: Text(
+                'حدث خطأ أثناء تحميل السور: ${state.error.toString()}',
+              ),
             );
           }
           return const Center(child: Text('لم يتم العثور على سور.'));

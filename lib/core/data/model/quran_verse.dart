@@ -9,6 +9,14 @@ class QuranVerse {
     required this.verseText,
   });
 
+  QuranVerse copyWith({int? surahId, int? verseNumber, String? verseText}) {
+    return QuranVerse(
+      surahId: surahId ?? this.surahId,
+      verseNumber: verseNumber ?? this.verseNumber,
+      verseText: verseText ?? this.verseText,
+    );
+  }
+
   factory QuranVerse.fromLine(String line) {
     final parts = line.split('|');
     return QuranVerse(

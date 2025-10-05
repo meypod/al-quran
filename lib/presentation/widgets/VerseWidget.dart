@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 
 import '../../core/utils/arabic_number_util.dart';
 
-class VerseRenderer extends StatelessWidget {
+class VerseWidget extends StatelessWidget {
   final String verseText;
   final int verseNumber;
 
-  const VerseRenderer({
+  const VerseWidget({
     super.key,
     required this.verseText,
     required this.verseNumber,
@@ -17,7 +17,8 @@ class VerseRenderer extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(
-        '$verseText ﴿${toArabicNumber(verseNumber)}﴾',
+        verseText +
+            (verseNumber == 0 ? '' : ' ﴿${toArabicNumber(verseNumber)}﴾'),
         textDirection: TextDirection.rtl,
         textAlign: TextAlign.right,
       ),

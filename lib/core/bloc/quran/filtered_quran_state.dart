@@ -1,11 +1,19 @@
-part of 'filtered_quran_bloc.dart';
+import '../../data/model/quran_verse.dart';
+import '../../data/model/surah.dart';
+
+class FilteredQuranLoading extends FilteredQuranState {}
+
+class FilteredQuranError extends FilteredQuranState {
+  final String message;
+  FilteredQuranError({required this.message});
+}
 
 abstract class FilteredQuranState {}
 
 class FilteredQuranInitial extends FilteredQuranState {}
 
 class FilteredQuranLoaded extends FilteredQuranState {
-  final Surah selectedSurah;
+  final Surah? selectedSurah;
   final List<QuranVerse> filteredVerses;
   final double scrollOffset;
   final String searchTerm;
@@ -15,9 +23,4 @@ class FilteredQuranLoaded extends FilteredQuranState {
     required this.scrollOffset,
     required this.searchTerm,
   });
-}
-
-class FilteredQuranError extends FilteredQuranState {
-  final String message;
-  FilteredQuranError({required this.message});
 }

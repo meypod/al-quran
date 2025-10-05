@@ -7,10 +7,12 @@ class QuranInitial extends QuranState {}
 class QuranLoading extends QuranState {}
 
 class QuranLoaded extends QuranState {
+  final QuranVerse bismillah;
   final List<Surah> surahs;
   final List<QuranVerse> quranVerses;
   final List<QuranVerse> quranCleanVerses;
   QuranLoaded({
+    required this.bismillah,
     required this.surahs,
     required this.quranVerses,
     required this.quranCleanVerses,
@@ -18,6 +20,6 @@ class QuranLoaded extends QuranState {
 }
 
 class QuranError extends QuranState {
-  final String message;
-  QuranError({required this.message});
+  final Object error;
+  QuranError({required this.error});
 }

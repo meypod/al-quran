@@ -40,6 +40,7 @@ dependencies:
   go_router: ^16.2.4
   get_it: ^8.2.0
   diacritic: ^0.1.6
+  collection: ^1.19.1
 
 dev_dependencies:
   flutter_test:

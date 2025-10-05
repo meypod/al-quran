@@ -26,13 +26,16 @@ class QuranBloc extends Bloc<QuranEvent, QuranState> {
         // Provide all verses as lines, let FilteredQuranBloc handle filtering/selection efficiently
         emit(
           QuranLoaded(
+            // first aya of quran is bismillah from Al-Fatiha
+            // we set verseNumber to 0 since it will be used in rendering
+            bismillah: _quranVerses[0].copyWith(verseNumber: 0),
             surahs: _surahs,
             quranVerses: _quranVerses,
             quranCleanVerses: _quranCleanVerses,
           ),
         );
       } catch (e) {
-        emit(QuranError(message: e.toString()));
+        emit(QuranError(error: e));
       }
     });
   }

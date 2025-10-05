@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../core/bloc/quran/filtered_quran_event.dart';
+import '../../core/bloc/quran/filtered_quran_state.dart';
 import '../../core/bloc/quran/quran_bloc.dart';
 import '../../core/bloc/quran/filtered_quran_bloc.dart';
 import '../../locator.dart';
 import '../../core/data/model/surah.dart';
 import '../../core/utils/quran_preferences.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../widgets/VerseRenderer.dart';
+import '../widgets/VerseWidget.dart';
 
 import 'package:go_router/go_router.dart';
 
@@ -39,12 +41,12 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    final quranBloc = getIt<QuranBloc>();
-    return BlocProvider<FilteredQuranBloc>(
-      create: (context) => FilteredQuranBloc(quranBloc: quranBloc),
+    final filteredQuranBloc = getIt<FilteredQuranBloc>();
+    return BlocProvider<FilteredQuranBloc>.value(
+      value: filteredQuranBloc,
       child: BlocBuilder<FilteredQuranBloc, FilteredQuranState>(
         builder: (context, state) {
-          if (state is FilteredQuranInitial) {
+          if (state is FilteredQuranInitial || state is FilteredQuranLoading) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
@@ -56,7 +58,7 @@ class _MainPageState extends State<MainPage> {
             );
           } else if (state is FilteredQuranLoaded) {
             final selectedSurah = state.selectedSurah;
-            final surahName = selectedSurah.name;
+            final surahName = selectedSurah?.name ?? "بحث";
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (_scrollController.hasClients &&
                   _scrollController.offset != state.scrollOffset) {
@@ -95,13 +97,15 @@ class _MainPageState extends State<MainPage> {
                   return false;
                 },
                 child: ListView.separated(
-                  key: PageStorageKey("surah-scroll-${state.selectedSurah.id}"),
+                  key: PageStorageKey(
+                    "surah-scroll-${state.selectedSurah?.id ?? 0}", // 0 is for search
+                  ),
                   controller: _scrollController,
                   itemCount: state.filteredVerses.length,
                   cacheExtent: 100,
                   itemBuilder: (context, index) {
                     final verse = state.filteredVerses[index];
-                    return VerseRenderer(
+                    return VerseWidget(
                       verseText: verse.verseText,
                       verseNumber: verse.verseNumber,
                     );
