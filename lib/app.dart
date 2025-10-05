@@ -14,7 +14,9 @@ class MyApp extends StatelessWidget {
       child: BlocBuilder<FontSizeBloc, FontSizeState>(
         builder: (context, state) {
           return MaterialApp.router(
+            debugShowCheckedModeBanner: false,
             title: 'Simple Quran',
+            restorationScopeId: 'root',
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
                 seedColor: Colors.deepPurple,

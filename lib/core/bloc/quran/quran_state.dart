@@ -8,17 +8,8 @@ class QuranLoading extends QuranState {}
 
 class QuranLoaded extends QuranState {
   final List<Surah> surahs;
-  final Surah selectedSurah;
-  final List<QuranVerse> filteredVerses;
-  final double scrollOffset;
-  final String searchTerm;
-  QuranLoaded({
-    required this.surahs,
-    required this.selectedSurah,
-    required this.filteredVerses,
-    required this.scrollOffset,
-    required this.searchTerm,
-  });
+  final List<String> quranLines;
+  QuranLoaded({required this.surahs, required this.quranLines});
 }
 
 class QuranError extends QuranState {
