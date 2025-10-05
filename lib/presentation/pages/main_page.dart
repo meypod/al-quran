@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../core/data/provider/quran_text_provider.dart';
+import 'surah_list_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -20,7 +22,22 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Simple Quran')),
+      appBar: AppBar(
+        title: const Text('Simple Quran'),
+        leading: IconButton(
+          icon: const Icon(Icons.menu_book),
+          tooltip: 'سور القرآن',
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) =>
+                    // ignore: prefer_const_constructors
+                    SurahListPage(),
+              ),
+            );
+          },
+        ),
+      ),
       body: FutureBuilder<List<String>>(
         future: _quranLinesFuture,
         builder: (context, snapshot) {
@@ -36,11 +53,7 @@ class _MainPageState extends State<MainPage> {
             itemCount: lines.length,
             cacheExtent: 100,
             itemBuilder: (context, index) => ListTile(
-              title: Text(
-                lines[index],
-                textDirection: TextDirection.rtl,
-                style: const TextStyle(fontFamily: 'Hafs'),
-              ),
+              title: Text(lines[index], textDirection: TextDirection.rtl),
             ),
             separatorBuilder: (context, index) => const Divider(height: 1),
           );
