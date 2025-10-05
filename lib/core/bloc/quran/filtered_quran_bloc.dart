@@ -1,3 +1,4 @@
+import 'package:diacritic/diacritic.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/model/quran_verse.dart';
 import '../../data/model/surah.dart';
@@ -72,11 +73,7 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
       (s) => s.id == _selectedSurahId,
       orElse: () => quranState.surahs.first,
     );
-    final filtered = _filterLines(
-      quranState.quranLines,
-      selectedSurah.id,
-      _searchTerm,
-    );
+    final filtered = _filterVerses(quranState, selectedSurah.id, _searchTerm);
     return FilteredQuranLoaded(
       selectedSurah: selectedSurah,
       filteredVerses: filtered,
@@ -85,15 +82,25 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
     );
   }
 
-  List<QuranVerse> _filterLines(
-    List<String> verses,
+  List<QuranVerse> _filterVerses(
+    QuranLoaded quranState,
     int surahId,
     String searchTerm,
   ) {
-    var surahLines = verses.where((line) => line.startsWith('$surahId|'));
+    var filtered = quranState.quranVerses.where((v) => v.surahId == surahId);
     if (searchTerm.isNotEmpty) {
-      surahLines = surahLines.where((line) => line.contains(searchTerm));
+      final cleanedTerm = removeDiacritics(searchTerm);
+      final cleanFiltered = quranState.quranCleanVerses.where(
+        (v) => v.surahId == surahId,
+      );
+      final matchingVerseNumbers = cleanFiltered
+          .where((v) => v.verseText.contains(cleanedTerm))
+          .map((v) => v.verseNumber)
+          .toSet();
+      filtered = filtered.where(
+        (v) => matchingVerseNumbers.contains(v.verseNumber),
+      );
     }
-    return surahLines.map((line) => QuranVerse.fromLine(line)).toList();
+    return filtered.toList();
   }
 }
