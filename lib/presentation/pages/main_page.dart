@@ -310,7 +310,7 @@ class _MainPageState extends State<MainPage> {
                             },
                             child: ListView.separated(
                               key: PageStorageKey(
-                                "surah-scroll-{state.selectedSurah?.id ?? 0}", // 0 is for search
+                                "surah-scroll-${state.selectedSurah?.id ?? 0}", // 0 is for search
                               ),
                               controller: _scrollController,
                               itemCount: state.filteredVerses.length,
