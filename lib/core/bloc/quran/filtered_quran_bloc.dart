@@ -51,7 +51,9 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
         QuranPreferences.getSearchTerm(),
         QuranPreferences.getSearchAllQuran(),
       ]);
-      _selectedSurahId = (prefs[0] as int?) ?? _selectedSurahId;
+      var savedSurahId = prefs[0] as int? ?? _selectedSurahId;
+      if (savedSurahId == 0) savedSurahId = 1;
+      _selectedSurahId = savedSurahId;
       _scrollOffset = (prefs[1] as double?) ?? _scrollOffset;
       _searchTerm = (prefs[2] as String?) ?? _searchTerm;
       _searchAllQuran = (prefs[3] as bool?) ?? _searchAllQuran;
