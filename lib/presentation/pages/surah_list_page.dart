@@ -35,7 +35,7 @@ class SurahListPage extends StatelessWidget {
                   if (index == currentIndex) {
                     return ListTile(
                       title: Text(
-                        'جز ${toArabicNumber(juz)}',
+                        'الجزء ${toArabicNumber(juz)}',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                         textDirection: TextDirection.rtl,
                       ),
