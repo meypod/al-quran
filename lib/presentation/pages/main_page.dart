@@ -143,27 +143,30 @@ class _MainPageState extends State<MainPage> {
                 title: Text(surahName, textAlign: TextAlign.center),
                 centerTitle: true,
                 leadingWidth: 100,
-                leading: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.menu_book),
-                      tooltip: 'سور القرآن',
-                      onPressed: () async {
-                        final selected = await context.push<Surah>('/surahs');
-                        if (selected is Surah && context.mounted) {
-                          context.read<FilteredQuranBloc>().add(
-                            FilteredQuranChangeSurah(selected.id),
-                          );
-                        }
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.format_size),
-                      tooltip: 'تغيير حجم الخط',
-                      onPressed: _toggleFontDrawer,
-                    ),
-                  ],
+                leading: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.menu_book),
+                        tooltip: 'سور القرآن',
+                        onPressed: () async {
+                          final selected = await context.push<Surah>('/surahs');
+                          if (selected is Surah && context.mounted) {
+                            context.read<FilteredQuranBloc>().add(
+                              FilteredQuranChangeSurah(selected.id),
+                            );
+                          }
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.format_size),
+                        tooltip: 'تغيير حجم الخط',
+                        onPressed: _toggleFontDrawer,
+                      ),
+                    ],
+                  ),
                 ),
                 actions: [
                   if (_searchController.text.isNotEmpty)
@@ -172,10 +175,13 @@ class _MainPageState extends State<MainPage> {
                       tooltip: 'مسح البحث',
                       onPressed: () => _clearSearch(context),
                     ),
-                  IconButton(
-                    icon: const Icon(Icons.search),
-                    tooltip: 'بحث',
-                    onPressed: _toggleSearchDrawer,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: IconButton(
+                      icon: const Icon(Icons.search),
+                      tooltip: 'بحث',
+                      onPressed: _toggleSearchDrawer,
+                    ),
                   ),
                 ],
               ),
