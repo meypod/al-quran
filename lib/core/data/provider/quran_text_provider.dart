@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:diacritic/diacritic.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:simple_quran/core/utils/text.dart';
 
 class QuranTextProvider {
   /// returns two versions of quran:
@@ -8,7 +8,7 @@ class QuranTextProvider {
   /// 2. Quran without diacritics
   static Future<(List<String>, List<String>)> loadQuranText() async {
     final raw = await rootBundle.loadString('assets/quran/quran-uthmani.txt');
-    final clean = removeDiacritics(raw);
+    final clean = simplifyText(raw);
     var rawLines = raw.split('\n');
     // remove copyright block
     rawLines.removeRange(rawLines.length - 30, rawLines.length);

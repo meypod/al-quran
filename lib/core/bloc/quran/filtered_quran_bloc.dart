@@ -1,8 +1,8 @@
-import 'package:diacritic/diacritic.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/model/quran_verse.dart';
 import '../../data/model/surah.dart';
 import '../../utils/quran_preferences.dart';
+import '../../utils/text.dart';
 import 'filtered_quran_event.dart';
 import 'filtered_quran_state.dart';
 import 'quran_bloc.dart';
@@ -128,16 +128,16 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
     );
 
     if (searchTerm.isNotEmpty) {
-      final cleanedTerm = removeDiacritics(searchTerm);
+      final cleanedTerm = simplifyText(searchTerm);
       final cleanFiltered = quranState.quranCleanVerses.where(
         (v) => selectedSurah == null || v.surahId == selectedSurah.id,
       );
-      final matchingVerseNumbers = cleanFiltered
+      final matchingVerses = cleanFiltered
           .where((v) => v.verseText.contains(cleanedTerm))
-          .map((v) => v.verseNumber)
+          .map((v) => "${v.surahId}|${v.verseNumber}")
           .toSet();
       filtered = filtered.where(
-        (v) => matchingVerseNumbers.contains(v.verseNumber),
+        (v) => matchingVerses.contains("${v.surahId}|${v.verseNumber}"),
       );
     }
     return filtered.toList();
