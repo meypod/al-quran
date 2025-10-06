@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../core/bloc/font_size_bloc.dart';
 import '../../core/bloc/quran/filtered_quran_event.dart';
 import '../../core/bloc/quran/filtered_quran_state.dart';
 import '../../core/bloc/quran/filtered_quran_bloc.dart';
@@ -145,8 +146,14 @@ class _MainPageState extends State<MainPage> {
                 }
               }
             });
+            final double fontSize = context.select<FontSizeBloc, double>(
+              (bloc) => bloc.state.fontSize,
+            );
+            final double toolbarHeight = 56.0 + (fontSize - 22.0) * 1.2;
+
             scaffoldContent = Scaffold(
               appBar: AppBar(
+                toolbarHeight: toolbarHeight.clamp(56.0, 120.0),
                 title: Text(surahName, textAlign: TextAlign.center),
                 centerTitle: true,
                 leadingWidth: 100,

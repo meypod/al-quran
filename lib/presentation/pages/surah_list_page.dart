@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/bloc/font_size_bloc.dart';
 import '../../core/data/model/surah.dart';
 
 import '../../core/bloc/surah_list/surah_list_bloc.dart';
@@ -44,8 +45,16 @@ class _SurahListPageState extends State<SurahListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final double fontSize = context.select<FontSizeBloc, double>(
+      (bloc) => bloc.state.fontSize,
+    );
+    final double toolbarHeight = 56.0 + (fontSize - 22.0) * 1.2;
     return Scaffold(
-      appBar: AppBar(title: const Text('سور القرآن'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('سور القرآن'),
+        centerTitle: true,
+        toolbarHeight: toolbarHeight.clamp(56.0, 120.0),
+      ),
       body: BlocBuilder<SurahListBloc, SurahListState>(
         bloc: _bloc,
         builder: (context, state) {
