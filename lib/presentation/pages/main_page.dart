@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/bloc/quran/filtered_quran_event.dart';
@@ -22,6 +23,7 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  DateTime? _lastBackPressed;
   void _clearSearch(BuildContext context) {
     setState(() {
       _searchController.clear();
@@ -113,12 +115,13 @@ class _MainPageState extends State<MainPage> {
           }
         },
         builder: (context, state) {
+          Widget scaffoldContent;
           if (state is FilteredQuranInitial || state is FilteredQuranLoading) {
-            return const Scaffold(
+            scaffoldContent = const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
           } else if (state is FilteredQuranError) {
-            return Scaffold(
+            scaffoldContent = Scaffold(
               body: Center(
                 child: Text('حدث خطأ أثناء تحميل القرآن: ${state.message}'),
               ),
@@ -142,7 +145,7 @@ class _MainPageState extends State<MainPage> {
                 }
               }
             });
-            return Scaffold(
+            scaffoldContent = Scaffold(
               appBar: AppBar(
                 title: Text(surahName, textAlign: TextAlign.center),
                 centerTitle: true,
@@ -336,9 +339,50 @@ class _MainPageState extends State<MainPage> {
                 ],
               ),
             );
+          } else {
+            scaffoldContent = const Scaffold(
+              body: Center(child: Text('لم يتم العثور على بيانات.')),
+            );
           }
-          return const Scaffold(
-            body: Center(child: Text('لم يتم العثور على بيانات.')),
+          // Wrap with PopScope to handle back button (Android/iOS predictive back)
+          return PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, _) async {
+              if (didPop == false && context.mounted) {
+                // If search is open or searchTerm is not empty, clear and collapse
+                if (_showSearchDrawer || _searchController.text.isNotEmpty) {
+                  setState(() {
+                    _showSearchDrawer = false;
+                    _searchController.clear();
+                  });
+                  // Also update the bloc to clear the search term
+                  _submitSearch(context);
+                  return;
+                }
+                // If search drawer is closed, require double back to exit
+                final now = DateTime.now();
+                if (_lastBackPressed == null ||
+                    now.difference(_lastBackPressed!) >
+                        const Duration(seconds: 2)) {
+                  _lastBackPressed = now;
+                  ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: Text('اضغط رجوع مرة أخرى للخروج'),
+                      ),
+                    ),
+                  );
+                  // Block pop
+                  return;
+                }
+                // Allow pop (exit app)
+                _lastBackPressed = null;
+                SystemNavigator.pop();
+              }
+            },
+            child: scaffoldContent,
           );
         },
       ),
