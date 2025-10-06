@@ -117,6 +117,7 @@ class _SurahListPageState extends State<SurahListPage> {
                                 )
                               : null,
                         ),
+                        style: const TextStyle(fontFamily: 'nonexisting'),
                       ),
                     ),
                   ),

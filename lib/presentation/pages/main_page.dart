@@ -97,7 +97,6 @@ class _MainPageState extends State<MainPage> {
             current is FilteredQuranLoaded && previous != current,
         listener: (context, state) {
           if (state is FilteredQuranLoaded) {
-            // Set search term and search all Quran state after loading
             if (_searchController.text != state.searchTerm) {
               _searchController.text = state.searchTerm;
             }
@@ -106,7 +105,6 @@ class _MainPageState extends State<MainPage> {
                 _searchAllQuran = state.searchAllQuran;
               });
             }
-            // If searchTerm is not empty, open the search drawer
             if (state.searchTerm.isNotEmpty && !_showSearchDrawer) {
               setState(() {
                 _showSearchDrawer = true;
@@ -129,12 +127,9 @@ class _MainPageState extends State<MainPage> {
             );
           } else if (state is FilteredQuranLoaded) {
             final selectedSurah = state.selectedSurah;
-            final String surahName;
-            if (state.searchTerm.isEmpty) {
-              surahName = selectedSurah?.name ?? "";
-            } else {
-              surahName = "بحث";
-            }
+            final String surahName = state.searchTerm.isEmpty
+                ? selectedSurah?.name ?? ""
+                : "بحث";
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (_scrollController.hasClients &&
                   _scrollController.offset != state.scrollOffset) {
@@ -260,6 +255,9 @@ class _MainPageState extends State<MainPage> {
                                           : null,
                                     ),
                                     onSubmitted: (_) => _submitSearch(context),
+                                    style: const TextStyle(
+                                      fontFamily: 'nonexisting',
+                                    ),
                                   ),
                                 ),
                               ],
