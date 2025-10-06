@@ -1,5 +1,5 @@
 import 'package:get_it/get_it.dart';
-import 'package:simple_quran/core/bloc/font_size_bloc.dart';
+import 'package:simple_quran/core/bloc/font_size/font_size_bloc.dart';
 import 'core/bloc/quran/filtered_quran_bloc.dart';
 import 'core/bloc/quran/quran_bloc.dart';
 import 'core/bloc/surah_list/surah_list_bloc.dart';

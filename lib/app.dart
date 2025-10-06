@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'core/bloc/font_size_bloc.dart';
+import 'core/bloc/font_size/font_size_bloc.dart';
 import 'locator.dart';
 import 'package:go_router/go_router.dart';
 

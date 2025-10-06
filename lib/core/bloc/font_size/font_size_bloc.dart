@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../utils/quran_preferences.dart';
+import '../../utils/quran_preferences.dart';
 
 part 'font_size_event.dart';
 part 'font_size_state.dart';

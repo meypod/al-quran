@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../core/bloc/font_size_bloc.dart';
+import '../../core/bloc/font_size/font_size_bloc.dart';
 import '../../core/bloc/quran/filtered_quran_event.dart';
 import '../../core/bloc/quran/filtered_quran_state.dart';
 import '../../core/bloc/quran/filtered_quran_bloc.dart';

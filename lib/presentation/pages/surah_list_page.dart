@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/bloc/font_size_bloc.dart';
+import '../../core/bloc/font_size/font_size_bloc.dart';
 import '../../core/data/model/surah.dart';
 
 import '../../core/bloc/surah_list/surah_list_bloc.dart';
