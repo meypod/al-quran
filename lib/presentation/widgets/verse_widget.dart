@@ -22,7 +22,7 @@ class VerseWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!isSearchResult) {
       return ListTile(
-        title: Text(
+        title: SelectableText(
           verse.verseText +
               (verse.verseNumber == 0
                   ? ''
@@ -53,7 +53,7 @@ class VerseWidget extends StatelessWidget {
       surahName = "${surah.name} (${toArabicNumber(verse.surahId)})";
     }
     return ListTile(
-      title: Text(
+      title: SelectableText(
         verse.verseText +
             (verse.verseNumber == 0
                 ? ''
