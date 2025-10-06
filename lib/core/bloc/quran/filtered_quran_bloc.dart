@@ -3,6 +3,7 @@ import '../../data/model/quran_verse.dart';
 import '../../data/model/surah.dart';
 import '../../utils/quran_preferences.dart';
 import '../../utils/text.dart';
+import 'dart:collection';
 import 'filtered_quran_event.dart';
 import 'filtered_quran_state.dart';
 import 'quran_bloc.dart';
@@ -102,7 +103,7 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
         quranState.surahs.elementAtOrNull(_selectedSurahId - 1) ??
         quranState.surahs[0];
     final isFullSearch = _searchTerm.isNotEmpty && _searchAllQuran;
-    final filtered = _filterVerses(
+    final (filtered, highlightMap) = _filterVerses(
       quranState,
       isFullSearch ? null : selectedSurah,
       _searchTerm,
@@ -110,16 +111,18 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
     if (!_searchTerm.isNotEmpty && selectedSurah.hasBismillah == true) {
       filtered.insert(0, quranState.bismillah);
     }
+
     return FilteredQuranLoaded(
       selectedSurah: selectedSurah,
       filteredVerses: filtered,
       scrollOffset: _scrollOffset,
       searchTerm: _searchTerm,
       searchAllQuran: _searchAllQuran,
+      highlightMap: highlightMap,
     );
   }
 
-  List<QuranVerse> _filterVerses(
+  (List<QuranVerse>, Map<String, List<(int, int)>>) _filterVerses(
     QuranLoaded quranState,
     Surah? selectedSurah,
     String searchTerm,
@@ -129,18 +132,24 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
     );
 
     if (searchTerm.isNotEmpty) {
-      final cleanedTerm = simplifyText(searchTerm);
-      final cleanFiltered = quranState.quranCleanVerses.where(
-        (v) => selectedSurah == null || v.surahId == selectedSurah.id,
-      );
-      final matchingVerses = cleanFiltered
-          .where((v) => v.verseText.contains(cleanedTerm))
-          .map((v) => "${v.surahId}|${v.verseNumber}")
-          .toSet();
-      filtered = filtered.where(
-        (v) => matchingVerses.contains("${v.surahId}|${v.verseNumber}"),
-      );
+      final regexTerm = regexifySearchTerm(searchTerm);
+      final List<QuranVerse> result = [];
+      // Build highlight map: key = 'surahId:verseNumber', value = List<(int, int)>
+      final Map<String, List<(int, int)>> highlightMap = {};
+      for (final verse in filtered) {
+        final ranges = <(int, int)>[];
+        final text = verse.verseText; // Use the original text for highlighting
+        final matches = regexTerm.allMatches(text);
+        for (final match in matches) {
+          ranges.add((match.start, match.end));
+        }
+        if (ranges.isNotEmpty) {
+          highlightMap[verse.key] = ranges;
+          result.add(verse);
+        }
+      }
+      return (result, highlightMap);
     }
-    return filtered.toList();
+    return (filtered.toList(), {});
   }
 }

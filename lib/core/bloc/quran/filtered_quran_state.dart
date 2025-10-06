@@ -18,11 +18,13 @@ class FilteredQuranLoaded extends FilteredQuranState {
   final double scrollOffset;
   final String searchTerm;
   final bool searchAllQuran;
+  final Map<String, List<(int, int)>> highlightMap;
   FilteredQuranLoaded({
     required this.selectedSurah,
     required this.filteredVerses,
     required this.scrollOffset,
     required this.searchTerm,
     required this.searchAllQuran,
+    this.highlightMap = const {},
   });
 }

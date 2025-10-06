@@ -10,12 +10,10 @@ class QuranLoaded extends QuranState {
   final QuranVerse bismillah;
   final List<Surah> surahs;
   final List<QuranVerse> quranVerses;
-  final List<QuranVerse> quranCleanVerses;
   QuranLoaded({
     required this.bismillah,
     required this.surahs,
     required this.quranVerses,
-    required this.quranCleanVerses,
   });
 }
 

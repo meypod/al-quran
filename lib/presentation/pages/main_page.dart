@@ -336,6 +336,8 @@ class _MainPageState extends State<MainPage> {
                                 return VerseWidget(
                                   verse: verse,
                                   isSearchResult: state.searchTerm.isNotEmpty,
+                                  highlights:
+                                      state.highlightMap[verse.key] ?? [],
                                 );
                               },
                               separatorBuilder: (context, index) =>
