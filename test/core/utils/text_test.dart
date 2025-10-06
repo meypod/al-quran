@@ -24,5 +24,17 @@ void main() {
       const expected = "کهيعص";
       expect(simplifyText(input), expected);
     });
+
+    test('alifs are expected', () {
+      const input = "ٱللَّهِ";
+      const expected = "الله";
+      expect(simplifyText(input), expected);
+    });
+
+    test('contain works as expected on normalized alif', () {
+      final input = simplifyText("ٱللَّهِ");
+      const searchTerm = "الله";
+      expect(input.contains(searchTerm), true);
+    });
   });
 }
