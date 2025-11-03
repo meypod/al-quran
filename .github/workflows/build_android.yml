@@ -14,7 +14,6 @@ jobs:
       (startsWith(github.ref, 'refs/tags/v') && endsWith(github.ref, '-android'))
     container:
       image: cimg/android:2025.10.1-ndk
-      options: --user root
 
     steps:
       - name: Checkout repository
@@ -32,11 +31,6 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-
-      - name: Fix Git
-        run: |
-          git config --global --add safe.directory $GITHUB_WORKSPACE
-          git config --global --add safe.directory /__t/flutter
 
       - name: Install Dependencies
         run: flutter pub get
