@@ -1,1 +1,1 @@
-a simple open-source ad-free Quran reader designed for pure reading experience
+a simple open-source Quran reader designed for pure reading experience
