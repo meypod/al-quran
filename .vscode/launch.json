@@ -10,5 +10,11 @@
       "type": "dart",
       "flutterMode": "debug"
     },
+    {
+      "name": "Flutter release",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release"
+    },
   ]
 }
