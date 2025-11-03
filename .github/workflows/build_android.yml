@@ -21,9 +21,6 @@ jobs:
         uses: actions/checkout@v5
         with:
           submodules: "true"
-      
-      - name: Fix Git
-        run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
       - name: Setup java
         uses: actions/setup-java@v5
@@ -35,6 +32,11 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+
+      - name: Fix Git
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+          git config --global --add safe.directory /__t/flutter
 
       - name: Install Dependencies
         run: flutter pub get
