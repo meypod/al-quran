@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
         builder: (context, state) {
           return MaterialApp.router(
             debugShowCheckedModeBanner: false,
-            title: 'Simple Quran',
+            title: 'Al-Quran',
             restorationScopeId: 'root',
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
