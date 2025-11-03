@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:simple_quran/core/utils/arabic_number_util.dart';
+import 'package:al_quran/core/utils/arabic_number_util.dart';
 import '../../data/model/surah.dart';
 import '../../utils/text.dart';
 

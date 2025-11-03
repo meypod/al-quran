@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.github.meypod.simple_quran"
+    namespace = "com.github.meypod.al_quran"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.github.meypod.simple_quran"
+        applicationId = "com.github.meypod.al_quran"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

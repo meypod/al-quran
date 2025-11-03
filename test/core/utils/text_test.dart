@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:simple_quran/core/utils/text.dart';
+import 'package:al_quran/core/utils/text.dart';
 
 void main() {
   group('keepCleanQuranText', () {

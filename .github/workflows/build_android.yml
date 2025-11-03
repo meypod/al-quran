@@ -83,7 +83,7 @@ jobs:
         continue-on-error: true
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
-          packageName: com.github.meypod.simple_quran
+          packageName: com.github.meypod.al_quran
           releaseFiles: android/app/build/outputs/bundle/release/*.aab
           track: internal
           status: draft

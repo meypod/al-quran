@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "simple_quran" "\0"
+            VALUE "CompanyName", "com.github.meypod.al_quran" "\0"
+            VALUE "FileDescription", "al_quran" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "simple_quran" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "simple_quran.exe" "\0"
-            VALUE "ProductName", "simple_quran" "\0"
+            VALUE "InternalName", "al_quran" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2025 com.github.meypod.al_quran. All rights reserved." "\0"
+            VALUE "OriginalFilename", "al_quran.exe" "\0"
+            VALUE "ProductName", "al_quran" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

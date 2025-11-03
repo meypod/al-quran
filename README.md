@@ -1,3 +1,3 @@
-# simple_quran
+# Al-Quran
 
-a simple quran app
+a simple open-source ad-free Quran app

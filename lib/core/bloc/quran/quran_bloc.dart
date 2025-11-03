@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:simple_quran/core/data/model/quran_verse.dart';
+import 'package:al_quran/core/data/model/quran_verse.dart';
 import '../../data/model/surah.dart';
 
 import '../../data/provider/quran_text_provider.dart';

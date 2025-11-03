@@ -1,4 +1,4 @@
-name: simple_quran
+name: al_quran
 description: "a simple quran app"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.

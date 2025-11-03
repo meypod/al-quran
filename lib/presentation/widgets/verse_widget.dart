@@ -1,10 +1,10 @@
 // Widget to render a Quran verse with number at the end
 import 'package:flutter/material.dart';
 
-import 'package:simple_quran/core/data/model/quran_verse.dart';
-import 'package:simple_quran/core/data/model/surah.dart';
-import 'package:simple_quran/locator.dart';
-import 'package:simple_quran/core/bloc/quran/quran_bloc.dart';
+import 'package:al_quran/core/data/model/quran_verse.dart';
+import 'package:al_quran/core/data/model/surah.dart';
+import 'package:al_quran/locator.dart';
+import 'package:al_quran/core/bloc/quran/quran_bloc.dart';
 
 import '../../core/utils/arabic_number_util.dart';
 

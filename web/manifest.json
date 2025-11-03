@@ -1,6 +1,6 @@
 {
-    "name": "simple_quran",
-    "short_name": "simple_quran",
+    "name": "al_quran",
+    "short_name": "al_quran",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ffffff",
