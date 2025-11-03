@@ -1,4 +1,4 @@
-name: build & upload mobile artifacts
+name: build & upload android artifacts
 
 on:
   release:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     container:
       image: cimg/android:2025.10.1-ndk
       options: --user root
@@ -54,14 +54,6 @@ jobs:
           ANDROID_KEY_STORE_PASSWORD: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
-      - name: Build IPA (iOS)
-        run: flutter build ipa --no-codesign
-
-      - name: Compress Archives and IPAs
-        run: |
-          cd build
-          tar -czf ios_build.tar.gz ios
-
       - name: Release on GitHub
         uses: ncipollo/release-action@v1
         with:
@@ -72,7 +64,7 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           updateOnlyUnreleased: true
-          artifacts: build/app/outputs/flutter-apk/*.apk,build/app/outputs/bundle/release/*.aab,build/ios_build.tar.gz
+          artifacts: build/app/outputs/flutter-apk/*.apk,build/app/outputs/bundle/release/*.aab
 
       - name: Push to Play Store
         if: ${{ github.event_name == 'release' && !contains(github.ref, '-rc') }}
