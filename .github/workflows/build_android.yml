@@ -8,6 +8,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' || 
+      (startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '.') && !contains(github.ref, '-')) ||
+      (startsWith(github.ref, 'refs/tags/v') && endsWith(github.ref, '-android'))
     container:
       image: cimg/android:2025.10.1-ndk
       options: --user root
@@ -37,6 +41,13 @@ jobs:
 
       - name: Build appBundle
         run: flutter build appbundle --release --no-pub --suppress-analytics
+
+      - name: Rename APK & Bundle
+        run: |
+          VERSION=$(grep 'version:' pubspec.yaml | sed 's/version: \([^+]*\).*/\1/')
+          VERSIONCODE=$(grep 'version:' pubspec.yaml | sed 's/.*+//')
+          mv build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/al_quran_${VERSION}_${VERSIONCODE}.apk"
+          mv build/app/outputs/bundle/release/app-release.aab "build/app/outputs/bundle/release/al_quran_${VERSION}_${VERSIONCODE}.aab"
 
       # build tools version can be found inside cimg/android related tag pulled layers details inside docker hub. usually second /bin/bash after ADB_INSTALL_TIMEOUT is set (near the end)
       - name: Sign Android Apk & Bundle files
