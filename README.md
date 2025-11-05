@@ -1,15 +1,15 @@
 # Al-Quran
 
-a simple open-source ad-free Quran reader designed for pure reading experience.
+a simple open-source Quran reader
 
-✨ Features:
+Features:
 
-- 📱 Clean Arabic interface
-- 🌓 Automatic light/dark theme
-- 🔍 Fast search functionality
-- 🔤 Customizable font size
-- 📖 Remembers your exact reading position
-- 🌟 Open-source, ad-free, and lightweight
+- Clean Arabic interface
+- Automatic light/dark theme
+- Fast search functionality
+- Customizable font size
+- Remembers your exact reading position
+- Open-source, ad-free, and lightweight
 
 Focus on what matters - reading the Holy Quran.
 
