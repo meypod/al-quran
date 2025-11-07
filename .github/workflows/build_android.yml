@@ -56,12 +56,12 @@ jobs:
           "$BUILD_TOOLS_DIR/zipalign" -c -v 4 build/app/outputs/flutter-apk/*.apk
           printf '%s' "$ANDROID_SIGNING_KEY" | base64 -d > keystore.jks
           for apk in build/app/outputs/flutter-apk/*.apk; do
-            "$BUILD_TOOLS_DIR/apksigner" sign --ks keystore.jks --ks-key-alias "$ANDROID_KEY_ALIAS" --ks-pass "pass:$ANDROID_KEY_STORE_PASSWORD" "$apk"
+            "$BUILD_TOOLS_DIR/apksigner" sign --ks keystore.jks --ks-key-alias "$ANDROID_KEY_ALIAS" --ks-pass "pass:$ANDROID_KEY_STORE_PASSWORD" --key-pass "pass:$ANDROID_KEY_PASSWORD" "$apk"
           done
-          jarsigner -keystore keystore.jks -storepass $ANDROID_KEY_STORE_PASSWORD -keypass $ANDROID_KEY_PASSWORD build/app/outputs/bundle/release/*.aab $ANDROID_KEY_ALIAS
+          jarsigner -keystore keystore.jks -storepass "$ANDROID_KEY_STORE_PASSWORD" -keypass "$ANDROID_KEY_PASSWORD" build/app/outputs/bundle/release/*.aab "$ANDROID_KEY_ALIAS"
         env:
           ANDROID_SIGNING_KEY: ${{ secrets.ANDROID_SIGNING_KEY }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_ALIAS }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_STORE_PASSWORD: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
