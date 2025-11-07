@@ -48,16 +48,15 @@ jobs:
           mv build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/al_quran_android_${VERSION}_${VERSIONCODE}.apk"
           mv build/app/outputs/bundle/release/app-release.aab "build/app/outputs/bundle/release/al_quran_android_${VERSION}_${VERSIONCODE}.aab"
 
-      # build tools version can be found inside cimg/android related tag pulled layers details inside docker hub. usually second /bin/bash after ADB_INSTALL_TIMEOUT is set (near the end)
       - name: Sign Android Apk & Bundle files
         if: ${{ github.event_name == 'release'}}
         run: |
-          ls -la $ANDROID_HOME
-          export BUILD_TOOLS_DIR="$ANDROID_HOME/build-tools/35.0.1"
-          "$BUILD_TOOLS_DIR/zipalign -c -v 4 build/app/outputs/flutter-apk/*.apk"
+          export BUILD_TOOLS_DIR="$ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -n 1)"
+          echo "Using build-tools: $BUILD_TOOLS_DIR"
+          "$BUILD_TOOLS_DIR/zipalign" -c -v 4 build/app/outputs/flutter-apk/*.apk
           printf '%s' "$ANDROID_SIGNING_KEY" | base64 -d > keystore.jks
-          "$BUILD_TOOLS_DIR/apksigner sign --ks keystore.jks --ks-key-alias $ANDROID_KEY_ALIAS --ks-pass pass:$ANDROID_KEY_STORE_PASSWORD --key-pass pass:$ANDROID_KEY_PASSWORD build/app/outputs/flutter-apk/*.apk"
-          "%JAVA_HOME%"\bin\jarsigner.exe -keystore keystore.jks -storepass $ANDROID_KEY_STORE_PASSWORD --key-pass $ANDROID_KEY_PASSWORD build/app/outputs/bundle/release/*.aab
+          "$BUILD_TOOLS_DIR/apksigner" sign --ks keystore.jks --ks-key-alias $ANDROID_KEY_ALIAS --ks-pass pass:$ANDROID_KEY_STORE_PASSWORD --key-pass pass:$ANDROID_KEY_PASSWORD build/app/outputs/flutter-apk/*.apk
+          jarsigner -keystore keystore.jks -storepass $ANDROID_KEY_STORE_PASSWORD -keypass $ANDROID_KEY_PASSWORD build/app/outputs/bundle/release/*.aab $ANDROID_KEY_ALIAS
         env:
           ANDROID_SIGNING_KEY: ${{ secrets.ANDROID_SIGNING_KEY }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_ALIAS }}
