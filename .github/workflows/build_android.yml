@@ -81,6 +81,7 @@ jobs:
           artifacts: build/app/outputs/flutter-apk/*.apk,build/app/outputs/bundle/release/*.aab
 
       - name: Push to Play Store
+        id: play-store-upload
         if: ${{ github.event_name == 'release' && !contains(github.ref, '-rc') }}
         uses: r0adkll/upload-google-play@v1
         continue-on-error: true
@@ -91,3 +92,28 @@ jobs:
           track: production
           status: draft
         #  changesNotSentForReview: true
+
+      - name: Delete AAB from GitHub Release
+        if: ${{ github.event_name == 'release' && !contains(github.ref, '-rc') && steps.play-store-upload.outcome == 'success' }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            const release = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: context.ref.replace('refs/tags/', '')
+            });
+            
+            const aabAssets = release.data.assets.filter(asset => asset.name.endsWith('.aab'));
+            
+            for (const asset of aabAssets) {
+              await github.rest.repos.deleteReleaseAsset({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  asset_id: asset.id
+              });
+              console.log(`Deleted ${asset.name}`);
+            }
