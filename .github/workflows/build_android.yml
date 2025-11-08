@@ -67,6 +67,12 @@ jobs:
           ANDROID_KEY_STORE_PASSWORD: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
+      - name: Generate SHA256 checksums
+        run: |
+          for file in build/app/outputs/flutter-apk/*.apk; do
+            sha256sum "$file" > "$file.sha256"
+          done
+
       - name: Release on GitHub
         uses: ncipollo/release-action@v1
         with:
@@ -77,7 +83,7 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           updateOnlyUnreleased: true
-          artifacts: build/app/outputs/flutter-apk/*.apk,build/app/outputs/bundle/release/*.aab
+          artifacts: build/app/outputs/flutter-apk/*.apk,build/app/outputs/flutter-apk/*.sha256,build/app/outputs/bundle/release/*.aab
 
       - name: Push to Play Store
         if: ${{ github.event_name == 'release' && !contains(github.ref, '-rc') }}
