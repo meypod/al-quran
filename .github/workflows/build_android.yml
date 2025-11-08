@@ -59,6 +59,7 @@ jobs:
             "$BUILD_TOOLS_DIR/apksigner" sign --ks keystore.jks --ks-key-alias "$ANDROID_KEY_ALIAS" --ks-pass "pass:$ANDROID_KEY_STORE_PASSWORD" --key-pass "pass:$ANDROID_KEY_PASSWORD" "$apk"
           done
           for file in build/app/outputs/bundle/release/*.aab; do
+            zip -d "$file" META-INF/\*
             jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore keystore.jks -storepass "$ANDROID_KEY_STORE_PASSWORD" -keypass "$ANDROID_KEY_PASSWORD" "$file" "$ANDROID_KEY_ALIAS"
           done
         env:
