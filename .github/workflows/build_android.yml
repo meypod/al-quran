@@ -97,6 +97,7 @@ jobs:
         if: ${{ github.event_name == 'release' && !contains(github.ref, '-rc') && steps.play-store-upload.outcome == 'success' }}
         uses: actions/github-script@v8
         with:
+          retries: 3
           script: |
             const fs = require('fs');
             const path = require('path');
