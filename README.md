@@ -6,6 +6,8 @@
 
 or get the APK from [Latest Release](https://github.com/meypod/al-quran/releases/latest).
 
+## Description
+
 a simple open-source Quran reader
 
 Features:
