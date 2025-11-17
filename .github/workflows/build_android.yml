@@ -88,7 +88,6 @@ jobs:
           mv build/app/outputs/bundle/release/app-release.aab "build/app/outputs/bundle/release/AlQuran_for_play_store_${VERSION}_${VERSIONCODE}.aab"
 
       - name: Sign Android Apk & Bundle files
-        if: ${{ github.event_name == 'release'}}
         run: |
           export BUILD_TOOLS_DIR="$ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -n 1)"
           echo "Using build-tools: $BUILD_TOOLS_DIR"
