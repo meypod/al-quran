@@ -1,4 +1,4 @@
-a simple open-source Quran reader
+A simple open-source Quran reader
 
 Features:
 

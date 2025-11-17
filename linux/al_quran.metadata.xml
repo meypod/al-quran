@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2013 First Lastname <your@email.com> -->
 <component type="desktop-application">
   <id>com.github.meypod.al_quran</id>
   <metadata_license>FSFAP</metadata_license>
   <project_license>AGPL-3.0-only</project_license>
   <name>Al-Quran - Simple</name>
-  <summary>a simple open-source Quran reader</summary>
+  <summary>A simple open-source Quran reader</summary>
+  <content_rating type="oars-1.0" />
+
 
   <description>
     <p>
+      A simple open-source Quran reader
+      
       Features:
     </p>
     <ul>
@@ -24,16 +27,16 @@
     </p>
   </description>
 
-  <launchable type="desktop-id">al_quran.desktop</launchable>
+  <launchable type="desktop-id">com.github.meypod.al_quran.desktop</launchable>
 
   <screenshots>
     <screenshot type="default">
-      <caption>Main screen</caption>
-      <image>https://github.com/meypod/al-quran/blob/main/fastlane/metadata/android/en-US/images/1.png</image>
+      <caption>Main screen dark</caption>
+      <image>https://raw.githubusercontent.com/meypod/al-quran/main/linux/screenshots/1.png</image>
     </screenshot>
     <screenshot>
-      <caption>Surah list screen</caption>
-      <image>https://github.com/meypod/al-quran/blob/main/fastlane/metadata/android/en-US/images/2.png</image>
+      <caption>Main screen light</caption>
+      <image>https://raw.githubusercontent.com/meypod/al-quran/d9af7bf71b3dfdefa93296a0fae68bf6d9fc8c1f/linux/screenshots/2.png</image>
     </screenshot>
   </screenshots>
 
@@ -43,4 +46,8 @@
   <provides>
     <binary>al_quran</binary>
   </provides>
+
+  <developer id="com.github.meypod">
+    <name>Meypod</name>
+  </developer>
 </component>

@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=Al-Quran
-Comment=a simple open-source Quran reader
+Comment=A simple open-source Quran reader
 Exec=al_quran
 Icon=com.github.meypod.al_quran
 Categories=Education;X-Religion;
