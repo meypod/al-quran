@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to upload artifacts to (leave empty for latest)'
+        description: "Tag to upload artifacts to (leave empty for latest)"
         required: false
-        default: ''
+        default: ""
 
 jobs:
   build:
@@ -26,7 +26,7 @@ jobs:
         with:
           submodules: "true"
 
-      - name: Get latest tag
+      - name: Get tag
         id: get_tag
         shell: bash
         run: |
@@ -51,17 +51,27 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Build Apk
-        run: flutter build apk --release --no-pub --suppress-analytics
-
       - name: Build appBundle
         run: flutter build appbundle --release --no-pub --suppress-analytics
 
-      - name: Rename APK & Bundle
+      - name: Build Split APKs
+        run: flutter build apk --release --split-per-abi --no-pub --suppress-analytics
+
+      - name: Rename Split APKs
+        run: |
+          VERSION=$(grep 'version:' pubspec.yaml | sed 's/version: \([^+]*\).*/\1/')
+          BASE_CODE=$(grep 'version:' pubspec.yaml | sed 's/.*+//')
+          ARM64_CODE=$((BASE_CODE * 10 + 1))
+          ARMEABI_CODE=$((BASE_CODE * 10 + 2))
+          X86_64_CODE=$((BASE_CODE * 10 + 3))
+          mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "build/app/outputs/flutter-apk/al_quran_android_${VERSION}_${ARM64_CODE}_arm64-v8a.apk"
+          mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "build/app/outputs/flutter-apk/al_quran_android_${VERSION}_${ARMEABI_CODE}_armeabi-v7a.apk"
+          mv build/app/outputs/flutter-apk/app-x86_64-release.apk "build/app/outputs/flutter-apk/al_quran_android_${VERSION}_${X86_64_CODE}_x86_64.apk"
+
+      - name: Rename Bundle
         run: |
           VERSION=$(grep 'version:' pubspec.yaml | sed 's/version: \([^+]*\).*/\1/')
           VERSIONCODE=$(grep 'version:' pubspec.yaml | sed 's/.*+//')
-          mv build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/al_quran_android_${VERSION}_${VERSIONCODE}.apk"
           mv build/app/outputs/bundle/release/app-release.aab "build/app/outputs/bundle/release/al_quran_android_${VERSION}_${VERSIONCODE}.aab"
 
       - name: Sign Android Apk & Bundle files
@@ -96,7 +106,38 @@ jobs:
           updateOnlyUnreleased: false
           artifacts: build/app/outputs/flutter-apk/*.apk,build/app/outputs/bundle/release/*.aab
 
-      - name: Push to Play Store
+  upload_play_store:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs: build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Get tag
+        id: get_tag
+        shell: bash
+        run: |
+          TAG="${{ github.event.inputs.tag }}"
+          if [ -z "$TAG" ]; then
+            git fetch --tags
+            TAG=$(git tag --sort=-creatordate | head -n 1)
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Download AAB from GitHub Release
+        env:
+          TAG: ${{ steps.get_tag.outputs.tag }}
+          CLEAN_VERSION: ${{ steps.get_tag.outputs.clean_version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_ID=$(gh api repos/${GITHUB_REPOSITORY}/releases/tags/$TAG --jq '.id')
+          ASSET_ID=$(gh api repos/${GITHUB_REPOSITORY}/releases/$RELEASE_ID/assets --jq '.[] | select(.name | endswith(".aab")) | .id')
+          gh api repos/${GITHUB_REPOSITORY}/releases/assets/$ASSET_ID --method GET -H "Accept: application/octet-stream" > app-release.aab
+
+      - name: Upload to Play Store
         id: play-store-upload
         if: ${{ github.event_name == 'release' && !contains(github.ref, '-rc') }}
         uses: r0adkll/upload-google-play@v1
@@ -104,7 +145,7 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: com.github.meypod.al_quran
-          releaseFiles: android/app/build/outputs/bundle/release/*.aab
+          releaseFiles: app-release.aab
           track: production
           status: draft
         #  changesNotSentForReview: true
@@ -112,20 +153,22 @@ jobs:
       - name: Delete AAB from GitHub Release
         if: ${{ github.event_name == 'release' && !contains(github.ref, '-rc') && steps.play-store-upload.outcome == 'success' }}
         uses: actions/github-script@v8
+        env:
+          TAG: ${{ steps.get_tag.outputs.tag }}
         with:
           retries: 3
           script: |
             const fs = require('fs');
             const path = require('path');
-            
+
             const release = await github.rest.repos.getReleaseByTag({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag: context.ref.replace('refs/tags/', '')
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: process.env.TAG
             });
-            
+
             const aabAssets = release.data.assets.filter(asset => asset.name.endsWith('.aab'));
-            
+
             for (const asset of aabAssets) {
               await github.rest.repos.deleteReleaseAsset({
                   owner: context.repo.owner,

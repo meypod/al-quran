@@ -25,7 +25,7 @@ jobs:
         with:
           submodules: "true"
 
-      - name: Get latest tag
+      - name: Get tag
         id: get_tag
         shell: bash
         run: |
