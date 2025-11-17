@@ -75,15 +75,14 @@ jobs:
             export LD_LIBRARY_PATH="$APPDIR/usr/bin/lib:$LD_LIBRARY_PATH"
             exec "$APPDIR/usr/bin/al_quran" "$@"
             EOF
-            cp linux/icon.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/al_quran.png"
-            ln -sf "usr/share/icons/hicolor/256x256/apps/al_quran.png" "$APPDIR/.DirIcon"
-            ln -sf "usr/share/icons/hicolor/256x256/apps/al_quran.png" "$APPDIR/al_quran.png"
+            cp linux/icon.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/com.github.meypod.al_quran.png"
+            ln -sf "usr/share/icons/hicolor/256x256/apps/com.github.meypod.al_quran.png" "$APPDIR/.DirIcon"
+            ln -sf "usr/share/icons/hicolor/256x256/apps/com.github.meypod.al_quran.png" "$APPDIR/al_quran.png"
             cp "linux/al_quran.metadata.xml" "$APPDIR/usr/share/metainfo/com.github.meypod.al_quran.appdata.xml"
-            cp "linux/al_quran.appimage.desktop" "$APPDIR/usr/share/applications/al_quran.desktop"
+            cp "linux/al_quran.appimage.desktop" "$APPDIR/usr/share/applications/com.github.meypod.al_quran.desktop"
             chmod +x "$APPDIR/usr/bin/al_quran"
             chmod +x "$APPDIR/AppRun"
             OUTPUT_FILE="$DIST_DIR/AlQuran-${CLEAN_VERSION}-x86_64.AppImage"
-            ls -la "$APPDIR"
             ARCH=x86_64 VERSION="$CLEAN_VERSION" ./appimagetool "$APPDIR" "$OUTPUT_FILE"
 
       - name: Package into rpm & deb
@@ -92,18 +91,17 @@ jobs:
           CLEAN_VERSION: ${{ steps.get_tag.outputs.clean_version }}
           REPOSITORY: ${{ github.repository }}
         run: |
-          APP_NAME="al_quran"
           DIST_DIR="dist"
           ARCH="x64"
           BUILD_DIR="build/linux/${ARCH}/release/bundle"
           STAGING_ROOT="pkgroot"
           rm -rf "$STAGING_ROOT"
-          mkdir -p "$STAGING_ROOT/opt/$APP_NAME"
-          cp -r "$BUILD_DIR"/. "$STAGING_ROOT/opt/$APP_NAME/"
-          install -Dm644 linux/icon.png "$STAGING_ROOT/usr/share/icons/hicolor/256x256/apps/${APP_NAME}.png"
-          install -Dm644 "linux/$APP_NAME.desktop" "$STAGING_ROOT/usr/share/applications/$APP_NAME.desktop"
+          mkdir -p "$STAGING_ROOT/opt/al_quran"
+          cp -r "$BUILD_DIR"/. "$STAGING_ROOT/opt/al_quran/"
+          install -Dm644 linux/icon.png "$STAGING_ROOT/usr/share/icons/hicolor/256x256/apps/com.github.meypod.al_quran.png"
+          install -Dm644 "linux/al_quran.desktop" "$STAGING_ROOT/usr/share/applications/com.github.meypod.al_quran.desktop"
           install -d "$STAGING_ROOT/usr/bin"
-          ln -sf "/opt/$APP_NAME/$APP_NAME" "$STAGING_ROOT/usr/bin/$APP_NAME"
+          ln -sf "/opt/al_quran/al_quran" "$STAGING_ROOT/usr/bin/al_quran"
           mkdir -p "$DIST_DIR"
           for TARGET in deb rpm; do
             if [ "$TARGET" = "deb" ]; then
@@ -113,9 +111,9 @@ jobs:
               ARCH="x86_64"
               DEPENDS=(-d "gtk3" -d "libblkid" -d "xz-libs")
             fi
-            OUTPUT_FILE="$DIST_DIR/${APP_NAME}_v${CLEAN_VERSION}_${ARCH}.${TARGET}"
+            OUTPUT_FILE="$DIST_DIR/AlQuran-${CLEAN_VERSION}-${ARCH}.${TARGET}"
             fpm -s dir -t "$TARGET" \
-              -n "$APP_NAME" \
+              -n "com.github.meypod.al_quran" \
               -v "$CLEAN_VERSION" \
               --architecture "$ARCH" \
               --license "AGPL-3.0" \
