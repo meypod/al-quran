@@ -70,6 +70,17 @@ jobs:
       - name: Build Split APKs
         run: flutter build apk --release --split-per-abi --no-pub --suppress-analytics
 
+      - name: Rename Split APKs
+        run: |
+          VERSION=$(grep 'version:' pubspec.yaml | sed 's/version: \([^+]*\).*/\1/')
+          BASE_CODE=$(grep 'version:' pubspec.yaml | sed 's/.*+//')
+          ARMEABI_CODE=$((BASE_CODE * 10 + 1))
+          ARM64_CODE=$((BASE_CODE * 10 + 2))
+          X86_64_CODE=$((BASE_CODE * 10 + 3))
+          mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "build/app/outputs/flutter-apk/AlQuran-${VERSION}-${ARMEABI_CODE}-armeabi-v7a.apk"
+          mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "build/app/outputs/flutter-apk/AlQuran-${VERSION}-${ARM64_CODE}-arm64-v8a.apk"
+          mv build/app/outputs/flutter-apk/app-x86_64-release.apk "build/app/outputs/flutter-apk/AlQuran-${VERSION}-${X86_64_CODE}-x86_64.apk"
+
       - name: Rename Bundle
         run: |
           VERSION=$(grep 'version:' pubspec.yaml | sed 's/version: \([^+]*\).*/\1/')

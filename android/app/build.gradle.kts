@@ -62,11 +62,11 @@ class ApplicationVariantAction : Action<ApplicationVariant> {
                     when (abi) {
                         "armeabi-v7a" -> 1
                         "arm64-v8a" -> 2
-                        "x86" -> 3
-                        "x86_64" -> 4
+                        "x86_64" -> 3
+                        "x86" -> 4
                         else -> 0
                     }
-                val versionCode = variant.versionCode * 1000 + abiVersionCode
+                val versionCode = variant.versionCode * 10 + abiVersionCode
                 output.versionCodeOverride = versionCode
 
                 val flavor = variant.flavorName
