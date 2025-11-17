@@ -1,3 +1,7 @@
+import com.android.build.gradle.api.ApplicationVariant
+import com.android.build.gradle.api.BaseVariantOutput
+import com.android.build.gradle.internal.api.ApkVariantOutputImpl
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -36,8 +40,43 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    applicationVariants.all(ApplicationVariantAction())
 }
 
 flutter {
     source = "../.."
+}
+
+class ApplicationVariantAction : Action<ApplicationVariant> {
+    override fun execute(variant: ApplicationVariant) {
+        variant.outputs.all(VariantOutputAction(variant))
+    }
+
+    class VariantOutputAction(private val variant: ApplicationVariant) : Action<BaseVariantOutput> {
+        override fun execute(output: BaseVariantOutput) {
+            if (output is ApkVariantOutputImpl) {
+                val abi =
+                    output.getFilter(com.android.build.api.variant.FilterConfiguration.FilterType.ABI.name)
+                val abiVersionCode =
+                    when (abi) {
+                        "armeabi-v7a" -> 1
+                        "arm64-v8a" -> 2
+                        "x86" -> 3
+                        "x86_64" -> 4
+                        else -> 0
+                    }
+                val versionCode = variant.versionCode * 1000 + abiVersionCode
+                output.versionCodeOverride = versionCode
+
+                val flavor = variant.flavorName
+                val builtType = variant.buildType.name
+                val versionName = variant.versionName
+                val architecture = abi ?: "universal"
+
+                output.outputFileName =
+                    "AlQuran-${versionName}-${architecture}-${versionCode}--${builtType}.apk"
+            }
+        }
+    }
 }
