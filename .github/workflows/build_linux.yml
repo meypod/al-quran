@@ -1,4 +1,4 @@
-name: build & upload linux artifacts
+name: build & upload linux x86_64 artifacts
 
 on:
   release:
@@ -29,6 +29,11 @@ jobs:
             TAG=$(git tag --sort=-creatordate | head -n 1)
           fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
+          CLEAN_VERSION="${TAG#v}"
+          if [ -z "$CLEAN_VERSION" ]; then
+            exit 1
+          fi
+          echo "clean_version=$CLEAN_VERSION" >> $GITHUB_OUTPUT
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -43,43 +48,64 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ruby ruby-dev build-essential rpm
           sudo gem install --no-document fpm
+          wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
 
       - name: Build linux app for x86_64
         run: flutter build linux --release --no-pub --suppress-analytics --target-platform=linux-x64
 
-      - name: Build linux app for arm64
-        run: flutter build linux --release --no-pub --suppress-analytics --target-platform=linux-arm64
-
       - name: ls dirs
         run: ls -la ./build/linux
 
-      - name: Package linux app
+      - name: Package into AppImage
+        env:
+          CLEAN_VERSION: ${{ steps.get_tag.outputs.clean_version }}
+        run: |
+            APP_NAME="al_quran"
+            DIST_DIR="dist"
+            ARCH="x64"
+            mkdir -p "$DIST_DIR"
+            BUILD_DIR="build/linux/${ARCH}/release/bundle"
+            APPDIR="AppDir_${ARCH}"
+            mkdir -p "$APPDIR/usr/bin"
+            cp -r "$BUILD_DIR"/* "$APPDIR/usr/bin/"
+            cp linux/icon.png "$APPDIR/al_quran.png"
+            cp "linux/$APP_NAME.desktop" "$APPDIR/"
+            chmod +x "$APPDIR/usr/bin/$APP_NAME"
+            OUTPUT_FILE="$DIST_DIR/${APP_NAME}_v${CLEAN_VERSION}_${ARCH}.AppImage"
+            ./appimagetool "AppDir_${ARCH}" "$OUTPUT_FILE"
+
+      - name: Package into rpm & deb
         env:
           TAG_VERSION: ${{ steps.get_tag.outputs.tag }}
+          CLEAN_VERSION: ${{ steps.get_tag.outputs.clean_version }}
           REPOSITORY: ${{ github.repository }}
         run: |
           APP_NAME="al_quran"
-          CLEAN_VERSION="${TAG_VERSION#v}"
-          if [ -z "$CLEAN_VERSION" ]; then
-            CLEAN_VERSION="0.0.0"
-          fi
           DIST_DIR="dist"
+          ARCH="x64"
+          BUILD_DIR="build/linux/${ARCH}/release/bundle"
+          STAGING_ROOT="pkgroot"
+          rm -rf "$STAGING_ROOT"
+          mkdir -p "$STAGING_ROOT/opt/$APP_NAME"
+          cp -r "$BUILD_DIR"/. "$STAGING_ROOT/opt/$APP_NAME/"
+          install -Dm644 linux/icon.png "$STAGING_ROOT/usr/share/icons/hicolor/256x256/apps/${APP_NAME}.png"
+          install -Dm644 "linux/$APP_NAME.desktop" "$STAGING_ROOT/usr/share/applications/$APP_NAME.desktop"
+          install -d "$STAGING_ROOT/usr/bin"
+          ln -sf "/opt/$APP_NAME/$APP_NAME" "$STAGING_ROOT/usr/bin/$APP_NAME"
           mkdir -p "$DIST_DIR"
           for TARGET in deb rpm; do
-            for ARCH in amd64 arm64; do
-              BUILD_DIR="build/linux/${ARCH}/release/bundle"
-              OUTPUT_FILE="$DIST_DIR/${APP_NAME}_v${CLEAN_VERSION}_${ARCH}.${TARGET}"
-              fpm -s dir -t "$TARGET" \
-                -n "$APP_NAME" \
-                -v "$CLEAN_VERSION" \
-                --architecture "$ARCH" \
-                --license "MIT" \
-                --description "Al-Quran desktop application" \
-                --url "https://github.com/$REPOSITORY" \
-                --prefix "/opt/$APP_NAME" \
-                --package "$OUTPUT_FILE" \
-                -C "$BUILD_DIR" .
-            done
+            OUTPUT_FILE="$DIST_DIR/${APP_NAME}_v${CLEAN_VERSION}_${ARCH}.${TARGET}"
+            fpm -s dir -t "$TARGET" \
+              -n "$APP_NAME" \
+              -v "$CLEAN_VERSION" \
+              --architecture "$ARCH" \
+              --license "AGPL-3.0" \
+              --description "Al-Quran desktop application" \
+              --url "https://github.com/$REPOSITORY" \
+              --prefix "/" \
+              --package "$OUTPUT_FILE" \
+              -C "$STAGING_ROOT" .
           done
 
       - name: Release on GitHub
