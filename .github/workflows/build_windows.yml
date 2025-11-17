@@ -42,10 +42,7 @@ jobs:
         run: flutter build windows --release --no-pub --suppress-analytics
       
       - name: Create msix for store
-        run: dart run msix:create --store --output-path ./windows_store.msix
-
-      - name: list files
-        run: ls -la
+        run: dart run msix:create --store --output-path ./ --output_name al_quran_for_store
 
       - name: Release on GitHub
         uses: ncipollo/release-action@v1
@@ -57,4 +54,4 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           updateOnlyUnreleased: true
-          artifacts: windows_store.msix
+          artifacts: al_quran_for_store.msix
