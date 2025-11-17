@@ -42,7 +42,7 @@ jobs:
         run: flutter build windows --release --no-pub --suppress-analytics
       
       - name: Create msix for store
-        run: dart run msix:create --store --output-name al_quran_for_store --output-path ./
+        run: dart run msix:create --store --release --architecture x64 --output-name al_quran_for_store --output-path ./
 
       - name: Release on GitHub
         uses: ncipollo/release-action@v1
