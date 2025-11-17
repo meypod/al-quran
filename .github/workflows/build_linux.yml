@@ -79,7 +79,7 @@ jobs:
             ln -sf "usr/share/icons/hicolor/256x256/apps/al_quran.png" "$APPDIR/.DirIcon"
             ln -sf "usr/share/icons/hicolor/256x256/apps/al_quran.png" "$APPDIR/al_quran.png"
             cp "linux/al_quran.metadata.xml" "$APPDIR/usr/share/metainfo/com.github.meypod.al_quran.appdata.xml"
-            cp "linux/al_quran.appimage.desktop" "$APPDIR/usr/share/applications/"
+            cp "linux/al_quran.appimage.desktop" "$APPDIR/usr/share/applications/al_quran.desktop"
             ln -sf "usr/share/applications/al_quran.desktop" "$APPDIR/al_quran.desktop"
             chmod +x "$APPDIR/usr/bin/al_quran"
             chmod +x "$APPDIR/AppRun"
