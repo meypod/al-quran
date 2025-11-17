@@ -9,6 +9,11 @@ on:
         description: "Tag to upload artifacts to (leave empty for latest)"
         required: false
         default: ""
+      skip_play_store_upload:
+        description: "Skip uploading to Google Play Store"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -19,6 +24,8 @@ jobs:
       github.event_name == 'workflow_dispatch' || 
       (startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '.') && !contains(github.ref, '-')) ||
       (startsWith(github.ref, 'refs/tags/v') && endsWith(github.ref, '-android'))
+    outputs:
+      skip_play_store_upload: ${{ steps.set_outputs.outputs.skip_play_store_upload }}
 
     steps:
       - name: Checkout repository
@@ -36,6 +43,12 @@ jobs:
             TAG=$(git tag --sort=-creatordate | head -n 1)
           fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Set outputs
+        id: set_outputs
+        run: |
+          SKIP_UPLOAD="${{ github.event.inputs.skip_play_store_upload }}"
+          echo "skip_play_store_upload=${SKIP_UPLOAD:-false}" >> $GITHUB_OUTPUT
 
       - name: Setup java
         uses: actions/setup-java@v5
@@ -100,6 +113,7 @@ jobs:
     permissions:
       contents: write
     needs: build
+    if: ${{ needs.build.outputs.skip_play_store_upload != 'true' }}
 
     steps:
       - name: Checkout repository
