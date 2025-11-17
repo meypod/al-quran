@@ -40,13 +40,13 @@ jobs:
         with:
           channel: stable
 
-      - name: Install Dependencies
+      - name: Install Flutter dependencies
         run: flutter pub get
 
       - name: Install packaging tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y ruby ruby-dev build-essential rpm libgtk-3-0 libblkid1 liblzma5
+          sudo apt-get install -y ruby ruby-dev build-essential rpm libgtk-3-dev
           sudo gem install --no-document fpm
           wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool
