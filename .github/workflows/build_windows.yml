@@ -11,7 +11,7 @@ on:
         default: ''
 
 jobs:
-  build:
+  build_x64:
     runs-on: windows-latest
     permissions:
       contents: write
@@ -35,6 +35,11 @@ jobs:
             TAG=$(git tag --sort=-creatordate | head -n 1)
           fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
+          CLEAN_VERSION="${TAG#v}"
+          if [ -z "$CLEAN_VERSION" ]; then
+            exit 1
+          fi
+          echo "clean_version=$CLEAN_VERSION" >> $GITHUB_OUTPUT
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -50,6 +55,9 @@ jobs:
       - name: Build windows app
         run: flutter build windows --release --no-pub --suppress-analytics
       
+      - name: Rename output exe
+        run: mv build/windows/x64/runner/Release/al_quran.exe build/windows/x64/runner/Release/AlQuran-${{ steps.get_tag.outputs.clean_version }}-x64.exe
+      
       - name: Create msix for store
         run: dart run msix:create --store --release --architecture x64 --output-name AlQuran_for_microsoft_store --output-path ./
 
@@ -63,4 +71,4 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           updateOnlyUnreleased: false
-          artifacts: AlQuran_for_microsoft_store.msix,build/windows/runner/Release/*.exe
+          artifacts: AlQuran_for_microsoft_store.msix,build/windows/x64/runner/Release/*.exe
