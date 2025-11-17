@@ -4,4 +4,4 @@ Name=Al-Quran
 Comment=a simple open-source ad-free Quran app
 Exec=al_quran
 Icon=al_quran
-Categories=Education;Religion;
+Categories=Education;X-Religion;
