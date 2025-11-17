@@ -4,6 +4,11 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to upload artifacts to (leave empty for latest)'
+        required: false
+        default: ''
 
 jobs:
   build:
@@ -18,8 +23,11 @@ jobs:
         id: get_tag
         shell: bash
         run: |
-          git fetch --tags
-          TAG=$(git describe --tags --abbrev=0)
+          TAG="${{ github.event.inputs.tag }}"
+          if [ -z "$TAG" ]; then
+            git fetch --tags
+            TAG=$(git tag --sort=-creatordate | head -n 1)
+          fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Setup Flutter
