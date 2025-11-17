@@ -34,7 +34,7 @@ jobs:
           submodules: "true"
 
       - name: Echo PWD
-        run: echo "Current directory: $PWD"
+        run: echo "Current directory is '$PWD'"
 
       - name: Get tag
         id: get_tag
