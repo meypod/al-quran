@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2013 First Lastname <your@email.com> -->
+<component type="desktop-application">
+  <id>com.github.meypod.al_quran</id>
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>AGPL-3.0-only</project_license>
+  <name>Al-Quran - Simple</name>
+  <summary>a simple open-source Quran reader</summary>
+
+  <description>
+    <p>
+      Features:
+    </p>
+    <ul>
+      <li>Clean Arabic interface</li>
+      <li>Automatic light/dark theme</li>
+      <li>Fast search functionality</li>
+      <li>Customizable font size</li>
+      <li>Remembers your exact reading position</li>
+      <li>Open-source, ad-free, and lightweight</li>
+    </ul>
+    <p>
+      Focus on what matters - reading the Holy Quran.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">al_quran.desktop</launchable>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Main screen</caption>
+      <image>https://github.com/meypod/al-quran/blob/main/fastlane/metadata/android/en-US/images/1.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Surah list screen</caption>
+      <image>https://github.com/meypod/al-quran/blob/main/fastlane/metadata/android/en-US/images/2.png</image>
+    </screenshot>
+  </screenshots>
+
+  <url type="homepage">https://github.com/meypod/al-quran</url>
+  <url type="bugtracker">https://github.com/meypod/al-quran/issues</url>
+
+  <provides>
+    <binary>al_quran</binary>
+  </provides>
+</component>

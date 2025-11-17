@@ -15,7 +15,7 @@ modules:
       - mkdir -p /app/bin/
       - cp -r build/linux/x64/release/bundle/* /app/bin/
       - install -D linux/icon.png /app/share/icons/hicolor/256x256/apps/com.github.meypod.al_quran.png
-      - install -D linux/al_quran.flatpak.desktop /app/share/applications/com.github.meypod.al_quran.desktop
+      - install -D linux/com.github.meypod.al_quran.flatpak.desktop /app/share/applications/com.github.meypod.al_quran.desktop
     sources:
       - type: dir
         path: ../

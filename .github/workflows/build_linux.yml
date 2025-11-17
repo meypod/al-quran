@@ -67,19 +67,27 @@ jobs:
         env:
           CLEAN_VERSION: ${{ steps.get_tag.outputs.clean_version }}
         run: |
-            APP_NAME="al_quran"
             DIST_DIR="dist"
-            ARCH="x64"
+            BUILD_DIR="build/linux/x64/release/bundle"
+            APPDIR="AppDir"
             mkdir -p "$DIST_DIR"
-            BUILD_DIR="build/linux/${ARCH}/release/bundle"
-            APPDIR="AppDir_${ARCH}"
-            mkdir -p "$APPDIR/usr/bin"
-            cp -r "$BUILD_DIR"/* "$APPDIR/usr/bin/"
-            cp linux/icon.png "$APPDIR/al_quran.png"
-            cp "linux/$APP_NAME.desktop" "$APPDIR/"
-            chmod +x "$APPDIR/usr/bin/$APP_NAME"
-            OUTPUT_FILE="$DIST_DIR/${APP_NAME}_v${CLEAN_VERSION}_${ARCH}.AppImage"
-            ./appimagetool "AppDir_${ARCH}" "$OUTPUT_FILE"
+            mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/share/metainfo/" "$APPDIR/usr/share/applications/" "$APPDIR/usr/share/icons/hicolor/256x256/apps/"
+            cp -r "$BUILD_DIR"/* "$APPDIR/usr/bin"
+            cat > "$APPDIR/AppRun" << 'EOF'
+            #!/bin/sh
+            export LD_LIBRARY_PATH="$APPDIR/usr/bin/lib:$LD_LIBRARY_PATH"
+            exec "$APPDIR/usr/bin/al_quran" "$@"
+            EOF
+            cp linux/icon.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/al_quran.png"
+            ln -sf "usr/share/icons/hicolor/256x256/apps/al_quran.png" "$APPDIR/.DirIcon"
+            ln -sf "usr/share/icons/hicolor/256x256/apps/al_quran.png" "$APPDIR/al_quran.png"
+            cp "linux/al_quran.metadata.xml" "$APPDIR/usr/share/metainfo/com.github.meypod.al_quran.appdata.xml"
+            cp "linux/al_quran.appimage.desktop" "$APPDIR/usr/share/applications/"
+            ln -sf "usr/share/applications/al_quran.desktop" "$APPDIR/al_quran.desktop"
+            chmod +x "$APPDIR/usr/bin/al_quran"
+            chmod +x "$APPDIR/AppRun"
+            OUTPUT_FILE="$DIST_DIR/al_quran_v${CLEAN_VERSION}_x64.AppImage"
+            ARCH=x86_64 VERSION="$CLEAN_VERSION" ./appimagetool "$APPDIR" "$OUTPUT_FILE"
 
       - name: Package into rpm & deb
         env:
