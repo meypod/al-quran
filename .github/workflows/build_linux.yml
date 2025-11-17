@@ -60,9 +60,6 @@ jobs:
       - name: Build linux app for x86_64
         run: flutter build linux --release --no-pub --suppress-analytics --target-platform=linux-x64
 
-      - name: ls dirs
-        run: ls -la ./build/linux
-
       - name: Package into AppImage
         env:
           CLEAN_VERSION: ${{ steps.get_tag.outputs.clean_version }}
@@ -87,6 +84,7 @@ jobs:
             chmod +x "$APPDIR/usr/bin/al_quran"
             chmod +x "$APPDIR/AppRun"
             OUTPUT_FILE="$DIST_DIR/al_quran_v${CLEAN_VERSION}_x64.AppImage"
+            ls -la "$APPDIR"
             ARCH=x86_64 VERSION="$CLEAN_VERSION" ./appimagetool "$APPDIR" "$OUTPUT_FILE"
 
       - name: Package into rpm & deb
