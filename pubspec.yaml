@@ -109,3 +109,4 @@ msix_config:
   identity_name: Meypod.Al-Quran-Simple
   publisher: CN=14B0C331-2FBD-4E68-9F12-69EFC62A0AFD
   languages: ar
+  logo_path: ./assets/icon/icon_os.png
