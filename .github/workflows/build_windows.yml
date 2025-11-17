@@ -54,9 +54,10 @@ jobs:
 
       - name: Build windows app
         run: flutter build windows --release --no-pub --suppress-analytics
-      
-      - name: Rename output exe
-        run: mv build/windows/x64/runner/Release/al_quran.exe build/windows/x64/runner/Release/AlQuran-${{ steps.get_tag.outputs.clean_version }}-x64.exe
+
+      - name: Zip App
+        run: |
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath build/AlQuran-${{ steps.get_tag.outputs.clean_version }}-x64.zip
       
       - name: Create msix for store
         run: dart run msix:create --store --release --architecture x64 --output-name AlQuran_for_microsoft_store --output-path ./
@@ -71,4 +72,4 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           updateOnlyUnreleased: false
-          artifacts: AlQuran_for_microsoft_store.msix,build/windows/x64/runner/Release/*.exe
+          artifacts: AlQuran_for_microsoft_store.msix,build/AlQuran*.zip
