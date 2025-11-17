@@ -53,5 +53,5 @@ jobs:
           omitName: true
           allowUpdates: true
           replacesArtifacts: true
-          updateOnlyUnreleased: true
+          updateOnlyUnreleased: false
           artifacts: al_quran_for_store.msix

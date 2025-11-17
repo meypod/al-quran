@@ -93,7 +93,7 @@ jobs:
           omitName: true
           allowUpdates: true
           replacesArtifacts: true
-          updateOnlyUnreleased: true
+          updateOnlyUnreleased: false
           artifacts: build/app/outputs/flutter-apk/*.apk,build/app/outputs/bundle/release/*.aab
 
       - name: Push to Play Store

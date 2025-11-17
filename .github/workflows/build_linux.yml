@@ -117,5 +117,5 @@ jobs:
           omitName: true
           allowUpdates: true
           replacesArtifacts: true
-          updateOnlyUnreleased: true
+          updateOnlyUnreleased: false
           artifacts: dist/*.deb,dist/*.rpm

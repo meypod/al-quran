@@ -65,5 +65,5 @@ jobs:
           omitName: true
           allowUpdates: true
           replacesArtifacts: true
-          updateOnlyUnreleased: true
+          updateOnlyUnreleased: false
           artifacts: build/ios_build.tar.gz
