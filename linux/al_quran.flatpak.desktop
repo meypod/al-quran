@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Al-Quran
+Comment=a simple open-source ad-free Quran app
+Exec=env LD_LIBRARY_PATH=/app/bin/lib al_quran
+Icon=com.github.meypod.al_quran
+Categories=Education;X-Religion;
