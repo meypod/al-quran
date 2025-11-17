@@ -1,10 +1,12 @@
 # Al-Quran
 
+Multi-platform Quran reader
+
 [<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
      alt='Get it on Google Play'
      height="80">](https://play.google.com/store/apps/details?id=com.github.meypod.al_quran)
 
-or get the APK from [Latest Release](https://github.com/meypod/al-quran/releases/latest).
+or get the App from [Latest Release](https://github.com/meypod/al-quran/releases/latest).
 
 ## Description
 
