@@ -41,6 +41,9 @@ jobs:
         with:
           channel: stable
 
+      - name: Disable analytics
+        run: dart --disable-analytics
+
       - name: Install Dependencies
         run: flutter pub get
 
@@ -60,4 +63,4 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           updateOnlyUnreleased: false
-          artifacts: AlQuran_for_microsoft_store.msix
+          artifacts: AlQuran_for_microsoft_store.msix,build/windows/runner/Release/*.exe
