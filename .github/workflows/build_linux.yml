@@ -1,0 +1,95 @@
+name: build & upload linux artifacts
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to upload artifacts to (leave empty for latest)'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          submodules: "true"
+
+      - name: Get latest tag
+        id: get_tag
+        shell: bash
+        run: |
+          TAG="${{ github.event.inputs.tag }}"
+          if [ -z "$TAG" ]; then
+            git fetch --tags
+            TAG=$(git tag --sort=-creatordate | head -n 1)
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Install packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby ruby-dev build-essential rpm
+          sudo gem install --no-document fpm
+
+      - name: Build linux app for x86_64
+        run: flutter build linux --release --no-pub --suppress-analytics --target-platform=linux-x64
+
+      - name: Build linux app for arm64
+        run: flutter build linux --release --no-pub --suppress-analytics --target-platform=linux-arm64
+
+      - name: ls dirs
+        run: ls -la ./build/linux
+
+      - name: Package linux app
+        env:
+          TAG_VERSION: ${{ steps.get_tag.outputs.tag }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          APP_NAME="al_quran"
+          CLEAN_VERSION="${TAG_VERSION#v}"
+          if [ -z "$CLEAN_VERSION" ]; then
+            CLEAN_VERSION="0.0.0"
+          fi
+          DIST_DIR="dist"
+          mkdir -p "$DIST_DIR"
+          for TARGET in deb rpm; do
+            for ARCH in amd64 arm64; do
+              BUILD_DIR="build/linux/${ARCH}/release/bundle"
+              OUTPUT_FILE="$DIST_DIR/${APP_NAME}_v${CLEAN_VERSION}_${ARCH}.${TARGET}"
+              fpm -s dir -t "$TARGET" \
+                -n "$APP_NAME" \
+                -v "$CLEAN_VERSION" \
+                --architecture "$ARCH" \
+                --license "MIT" \
+                --description "Al-Quran desktop application" \
+                --url "https://github.com/$REPOSITORY" \
+                --prefix "/opt/$APP_NAME" \
+                --package "$OUTPUT_FILE" \
+                -C "$BUILD_DIR" .
+            done
+          done
+
+      - name: Release on GitHub
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.get_tag.outputs.tag }}
+          omitBody: true
+          omitBodyDuringUpdate: true
+          omitName: true
+          allowUpdates: true
+          replacesArtifacts: true
+          updateOnlyUnreleased: true
+          artifacts: dist/*.deb,dist/*.rpm
