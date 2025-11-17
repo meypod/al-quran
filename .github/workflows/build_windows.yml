@@ -1,0 +1,53 @@
+name: build & upload windows artifacts
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          submodules: "true"
+
+      - name: Get latest tag
+        id: get_tag
+        shell: bash
+        run: |
+          git fetch --tags
+          TAG=$(git describe --tags --abbrev=0)
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build windows app
+        run: flutter build windows --release --no-pub --suppress-analytics
+      
+      - name: Create msix for store
+        run: dart run msix:create --store --output-path ./
+
+      - name: list files
+        run: ls -la
+
+      - name: Release on GitHub
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.get_tag.outputs.tag }}
+          prerelease: true
+          omitBody: true
+          omitBodyDuringUpdate: true
+          omitName: true
+          allowUpdates: true
+          replacesArtifacts: true
+          updateOnlyUnreleased: true
+          artifacts: "*.msix"

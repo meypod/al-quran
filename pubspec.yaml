@@ -51,6 +51,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
+  msix: ^3.16.12
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -101,3 +102,10 @@ flutter:
         - asset: assets/fonts/hafs.woff
         - asset: assets/fonts/hafs.woff2
         - asset: assets/fonts/hafs.eot
+
+msix_config:
+  display_name: Al-Quran - Simple
+  publisher_display_name: Meypod
+  identity_name: Meypod.Al-Quran-Simple
+  publisher: CN=14B0C331-2FBD-4E68-9F12-69EFC62A0AFD
+  languages: ar
