@@ -51,7 +51,6 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.get_tag.outputs.tag }}
-          prerelease: true
           omitBody: true
           omitBodyDuringUpdate: true
           omitName: true
