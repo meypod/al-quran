@@ -77,10 +77,10 @@ jobs:
             EOF
             cp linux/icon.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/com.github.meypod.al_quran.png"
             ln -sf "usr/share/icons/hicolor/256x256/apps/com.github.meypod.al_quran.png" "$APPDIR/.DirIcon"
-            ln -sf "usr/share/icons/hicolor/256x256/apps/com.github.meypod.al_quran.png" "$APPDIR/al_quran.png"
+            ln -sf "usr/share/icons/hicolor/256x256/apps/com.github.meypod.al_quran.png" "$APPDIR/com.github.meypod.al_quran.png"
             cp "linux/al_quran.metadata.xml" "$APPDIR/usr/share/metainfo/com.github.meypod.al_quran.appdata.xml"
             cp "linux/al_quran.appimage.desktop" "$APPDIR/usr/share/applications/com.github.meypod.al_quran.desktop"
-            ln -sf "usr/share/applications/com.github.meypod.al_quran.desktop" "$APPDIR/al_quran.desktop"
+            ln -sf "usr/share/applications/com.github.meypod.al_quran.desktop" "$APPDIR/com.github.meypod.al_quran.desktop"
             chmod +x "$APPDIR/usr/bin/al_quran"
             chmod +x "$APPDIR/AppRun"
             OUTPUT_FILE="$DIST_DIR/AlQuran-${CLEAN_VERSION}-x86_64.AppImage"
