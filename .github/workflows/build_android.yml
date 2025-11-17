@@ -91,9 +91,9 @@ jobs:
         run: |
           export BUILD_TOOLS_DIR="$ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools | sort -V | tail -n 1)"
           echo "Using build-tools: $BUILD_TOOLS_DIR"
-          "$BUILD_TOOLS_DIR/zipalign" -c -v 4 build/app/outputs/flutter-apk/*.apk
           printf '%s' "$ANDROID_SIGNING_KEY" | base64 -d > keystore.jks
           for apk in build/app/outputs/flutter-apk/*.apk; do
+            "$BUILD_TOOLS_DIR/zipalign" -c -v 4 "$apk"
             "$BUILD_TOOLS_DIR/apksigner" sign --ks keystore.jks --ks-key-alias "$ANDROID_KEY_ALIAS" --ks-pass "pass:$ANDROID_KEY_STORE_PASSWORD" --key-pass "pass:$ANDROID_KEY_PASSWORD" "$apk"
           done
           for file in build/app/outputs/bundle/release/*.aab; do
