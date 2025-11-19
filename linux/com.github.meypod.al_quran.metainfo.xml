@@ -51,4 +51,13 @@
   <developer id="com.github.meypod">
     <name>Meypod</name>
   </developer>
+
+  <releases>
+    <release version="1.0.0" date="2025-11-08">
+      <url type="details">https://github.com/meypod/al-quran/releases/tag/v1.0.0</url>
+      <description>
+        <p>Initial Release</p>
+      </description>
+    </release>
+  </releases>
 </component>
