@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to upload artifacts to (leave empty for latest)'
+        description: "Tag to upload artifacts to (leave empty for latest)"
         required: false
-        default: ''
+        default: ""
 
 jobs:
   build_x64:
@@ -41,6 +41,12 @@ jobs:
           fi
           echo "clean_version=$CLEAN_VERSION" >> $GITHUB_OUTPUT
 
+      - name: Install Latest VC Redistributable
+        shell: pwsh
+        run: |
+          curl -o VC_redist.x64.exe -L https://aka.ms/vs/17/release/vc_redist.x64.exe
+          Start-Process VC_redist.x64.exe -ArgumentList "/install /quiet /norestart" -Wait
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -55,12 +61,22 @@ jobs:
       - name: Build windows app
         run: flutter build windows --release --no-pub --suppress-analytics
 
-      - name: Zip App
+      - name: Copy system msvcp140.dll
+        shell: bash
+        run: cp C:/Windows/System32/msvcp140.dll build/windows/x64/runner/Release
+
+      - name: Build Windows .exe installer
+        shell: bash
         run: |
-          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath build/AlQuran-${{ steps.get_tag.outputs.clean_version }}-windows-x64.zip
-      
-      - name: Create msix for store
-        run: dart run msix:create --store --release --architecture x64 --output-name AlQuran_for_microsoft_store --output-path ./
+          echo "C:/Program Files (x86)/Inno Setup 6" >> $GITHUB_PATH
+          iscc al_quran.iss
+
+      - name: Zip Portable
+        run: |
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath build/AlQuran-${{ steps.get_tag.outputs.clean_version }}-windows-x64-portable.zip
+
+      # - name: Create msix for store
+      #   run: dart run msix:create --store --release --architecture x64 --output-name AlQuran_for_microsoft_store --output-path ./
 
       - name: Release on GitHub
         uses: ncipollo/release-action@v1
@@ -72,4 +88,5 @@ jobs:
           allowUpdates: true
           replacesArtifacts: true
           updateOnlyUnreleased: false
-          artifacts: AlQuran_for_microsoft_store.msix,build/AlQuran*.zip
+          # artifacts: AlQuran_for_microsoft_store.msix,build/AlQuran*.zip
+          artifacts: build/AlQuran*.zip,build/AlQuran-Windows-Installer.exe
