@@ -70,7 +70,7 @@ jobs:
         run: |
           echo "C:/Program Files (x86)/Inno Setup 6" >> $GITHUB_PATH
           iscc al_quran.iss
-          Move-Item build/AlQuran-Windows-Installer.exe "build/AlQuran-$env:CLEAN_VERSION-windows-x86_64-installer.exe"
+          mv build/AlQuran-Windows-Installer.exe "build/AlQuran-${{ steps.get_tag.outputs.clean_version }}-windows-x86_64-installer.exe"
 
       - name: Zip Portable
         run: |
