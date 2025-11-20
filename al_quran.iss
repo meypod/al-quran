@@ -47,7 +47,7 @@ OutputBaseFilename=AlQuran-Windows-Installer
 OutputDir=.\build
 Compression=lzma
 SolidCompression=yes
-SetupIconFile="icon.ico"
+SetupIconFile="icon48.ico"
 
 [Languages]
 Name: "en"; MessagesFile: "compiler:Default.isl"
