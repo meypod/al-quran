@@ -3,5 +3,5 @@ Type=Application
 Name=Al-Quran
 Comment=A simple open-source Quran reader
 Exec=env LD_LIBRARY_PATH=/usr/bin/lib al_quran
-Icon=com.github.meypod.al_quran
+Icon=io.github.meypod.al_quran
 Categories=Education;X-Religion;

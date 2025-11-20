@@ -75,12 +75,12 @@ jobs:
             export LD_LIBRARY_PATH="$APPDIR/usr/bin/lib:$LD_LIBRARY_PATH"
             exec "$APPDIR/usr/bin/al_quran" "$@"
             EOF
-            cp linux/icon.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/com.github.meypod.al_quran.png"
-            ln -sf "usr/share/icons/hicolor/256x256/apps/com.github.meypod.al_quran.png" "$APPDIR/.DirIcon"
-            ln -sf "usr/share/icons/hicolor/256x256/apps/com.github.meypod.al_quran.png" "$APPDIR/com.github.meypod.al_quran.png"
-            cp "linux/com.github.meypod.al_quran.metainfo.xml" "$APPDIR/usr/share/metainfo/com.github.meypod.al_quran.appdata.xml"
-            cp "linux/al_quran.appimage.desktop" "$APPDIR/usr/share/applications/com.github.meypod.al_quran.desktop"
-            ln -sf "usr/share/applications/com.github.meypod.al_quran.desktop" "$APPDIR/com.github.meypod.al_quran.desktop"
+            cp linux/icon.png "$APPDIR/usr/share/icons/hicolor/256x256/apps/io.github.meypod.al_quran.png"
+            ln -sf "usr/share/icons/hicolor/256x256/apps/io.github.meypod.al_quran.png" "$APPDIR/.DirIcon"
+            ln -sf "usr/share/icons/hicolor/256x256/apps/io.github.meypod.al_quran.png" "$APPDIR/io.github.meypod.al_quran.png"
+            cp "linux/io.github.meypod.al_quran.metainfo.xml" "$APPDIR/usr/share/metainfo/io.github.meypod.al_quran.appdata.xml"
+            cp "linux/al_quran.appimage.desktop" "$APPDIR/usr/share/applications/io.github.meypod.al_quran.desktop"
+            ln -sf "usr/share/applications/io.github.meypod.al_quran.desktop" "$APPDIR/io.github.meypod.al_quran.desktop"
             chmod +x "$APPDIR/usr/bin/al_quran"
             chmod +x "$APPDIR/AppRun"
             OUTPUT_FILE="$DIST_DIR/AlQuran-${CLEAN_VERSION}-x86_64.AppImage"
@@ -99,8 +99,8 @@ jobs:
           rm -rf "$STAGING_ROOT"
           mkdir -p "$STAGING_ROOT/opt/al_quran"
           cp -r "$BUILD_DIR"/. "$STAGING_ROOT/opt/al_quran/"
-          install -Dm644 linux/icon.png "$STAGING_ROOT/usr/share/icons/hicolor/256x256/apps/com.github.meypod.al_quran.png"
-          install -Dm644 "linux/al_quran.desktop" "$STAGING_ROOT/usr/share/applications/com.github.meypod.al_quran.desktop"
+          install -Dm644 linux/icon.png "$STAGING_ROOT/usr/share/icons/hicolor/256x256/apps/io.github.meypod.al_quran.png"
+          install -Dm644 "linux/al_quran.desktop" "$STAGING_ROOT/usr/share/applications/io.github.meypod.al_quran.desktop"
           install -d "$STAGING_ROOT/usr/bin"
           ln -sf "/opt/al_quran/al_quran" "$STAGING_ROOT/usr/bin/al_quran"
           mkdir -p "$DIST_DIR"
@@ -114,7 +114,7 @@ jobs:
             fi
             OUTPUT_FILE="$DIST_DIR/AlQuran-${CLEAN_VERSION}-${ARCH}.${TARGET}"
             fpm -s dir -t "$TARGET" \
-              -n "com.github.meypod.al_quran" \
+              -n "io.github.meypod.al_quran" \
               -v "$CLEAN_VERSION" \
               --architecture "$ARCH" \
               --license "AGPL-3.0" \
