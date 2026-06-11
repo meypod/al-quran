@@ -322,24 +322,27 @@ class _MainPageState extends State<MainPage> {
                               }
                               return false;
                             },
-                            child: ListView.separated(
-                              key: PageStorageKey(
-                                "surah-scroll-${state.selectedSurah?.id ?? 0}", // 0 is for search
+                            child: SelectionArea(
+                              child: ListView.separated(
+                                key: PageStorageKey(
+                                  "surah-scroll-${state.selectedSurah?.id ?? 0}", // 0 is for search
+                                ),
+                                controller: _scrollController,
+                                itemCount: state.filteredVerses.length,
+                                cacheExtent: 100,
+                                itemBuilder: (context, index) {
+                                  final verse = state.filteredVerses[index];
+                                  return VerseWidget(
+                                    verse: verse,
+                                    isSearchResult:
+                                        state.searchTerm.isNotEmpty,
+                                    highlights:
+                                        state.highlightMap[verse.key] ?? [],
+                                  );
+                                },
+                                separatorBuilder: (context, index) =>
+                                    const Divider(height: 1),
                               ),
-                              controller: _scrollController,
-                              itemCount: state.filteredVerses.length,
-                              cacheExtent: 100,
-                              itemBuilder: (context, index) {
-                                final verse = state.filteredVerses[index];
-                                return VerseWidget(
-                                  verse: verse,
-                                  isSearchResult: state.searchTerm.isNotEmpty,
-                                  highlights:
-                                      state.highlightMap[verse.key] ?? [],
-                                );
-                              },
-                              separatorBuilder: (context, index) =>
-                                  const Divider(height: 1),
                             ),
                           ),
                   ),

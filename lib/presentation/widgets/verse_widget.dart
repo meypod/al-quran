@@ -113,10 +113,10 @@ class VerseWidget extends StatelessWidget {
         ),
       );
     }
-    return RichText(
+    return Text.rich(
+      TextSpan(style: defaultStyle, children: spans),
       textDirection: TextDirection.rtl,
       textAlign: TextAlign.right,
-      text: TextSpan(style: defaultStyle, children: spans),
     );
   }
 }
