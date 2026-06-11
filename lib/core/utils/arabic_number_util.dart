@@ -34,6 +34,17 @@ String toEasternArabicNumber(int number) {
 
 var toArabicNumber = toIndicArabicNumber;
 
+/// Arabic counted-noun phrase for "آية" (verse) following CLDR plural rules.
+/// 1 → آية واحدة, 2 → آيتان, 3–10 (mod 100) → عدد آيات,
+/// otherwise → عدد آية. Returns the noun phrase only (no verb).
+String versesCountPhrase(int count) {
+  if (count == 1) return 'آية واحدة';
+  if (count == 2) return 'آيتين';
+  final mod100 = count % 100;
+  if (mod100 >= 3 && mod100 <= 10) return '${toArabicNumber(count)} آيات';
+  return '${toArabicNumber(count)} آية';
+}
+
 final RegExp otherNumbersRegexp = RegExp(r'[\u0660-\u0669\u06F0-\u06F9]');
 
 /// Converts a string containing Arabic-Indic or Eastern Arabic numerals to English digits.

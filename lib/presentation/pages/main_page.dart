@@ -7,8 +7,10 @@ import '../../core/bloc/quran/filtered_quran_event.dart';
 import '../../core/bloc/quran/filtered_quran_state.dart';
 import '../../core/bloc/quran/filtered_quran_bloc.dart';
 import '../../core/utils/text.dart';
+import '../../core/utils/arabic_number_util.dart';
 import '../../locator.dart';
 import '../../core/data/model/surah.dart';
+import '../../core/data/model/quran_verse.dart';
 import '../../core/utils/quran_preferences.dart';
 import '../widgets/verse_widget.dart';
 import '../widgets/font_adjuster.dart';
@@ -42,6 +44,40 @@ class _MainPageState extends State<MainPage> {
   bool _showSearchDrawer = false;
   final TextEditingController _searchController = TextEditingController();
   bool _searchAllQuran = false;
+
+  bool _selectionMode = false;
+  final Set<String> _selectedKeys = {};
+
+  void _exitSelectionMode() {
+    setState(() {
+      _selectionMode = false;
+      _selectedKeys.clear();
+    });
+  }
+
+  void _toggleVerseSelection(String key) {
+    setState(() {
+      if (!_selectedKeys.remove(key)) _selectedKeys.add(key);
+    });
+  }
+
+  void _copySelectedVerses(List<QuranVerse> verses) {
+    final selected = verses.where((v) => _selectedKeys.contains(v.key));
+    final text = selected
+        .map((v) => VerseWidget.copyText(v, VerseWidget.surahNameFor(v)))
+        .join();
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'تم نسخ ${versesCountPhrase(_selectedKeys.length)}',
+          textDirection: TextDirection.rtl,
+        ),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+    _exitSelectionMode();
+  }
 
   @override
   void initState() {
@@ -149,7 +185,12 @@ class _MainPageState extends State<MainPage> {
             scaffoldContent = Scaffold(
               appBar: AppBar(
                 toolbarHeight: toolbarHeight.clamp(56.0, 120.0),
-                title: Text(surahName, textAlign: TextAlign.center),
+                title: Text(
+                  _selectionMode
+                      ? 'تم تحديد ${toArabicNumber(_selectedKeys.length)}'
+                      : surahName,
+                  textAlign: TextAlign.center,
+                ),
                 centerTitle: true,
                 leadingWidth: 100,
                 leading: Padding(
@@ -177,22 +218,49 @@ class _MainPageState extends State<MainPage> {
                     ],
                   ),
                 ),
-                actions: [
-                  if (_searchController.text.isNotEmpty)
-                    IconButton(
-                      icon: const Icon(Icons.clear),
-                      tooltip: 'مسح البحث',
-                      onPressed: () => _clearSearch(context),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: IconButton(
-                      icon: const Icon(Icons.search),
-                      tooltip: 'بحث',
-                      onPressed: _toggleSearchDrawer,
-                    ),
-                  ),
-                ],
+                actions: _selectionMode
+                    ? [
+                        IconButton(
+                          icon: const Icon(Icons.copy),
+                          tooltip: 'نسخ المحدد',
+                          onPressed: _selectedKeys.isEmpty
+                              ? null
+                              : () =>
+                                    _copySelectedVerses(state.filteredVerses),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: IconButton(
+                            icon: const Icon(Icons.close),
+                            tooltip: 'إلغاء',
+                            onPressed: _exitSelectionMode,
+                          ),
+                        ),
+                      ]
+                    : [
+                        if (state.searchTerm.isNotEmpty &&
+                            state.filteredVerses.isNotEmpty)
+                          IconButton(
+                            icon: const Icon(Icons.checklist),
+                            tooltip: 'تحديد الآيات',
+                            onPressed: () =>
+                                setState(() => _selectionMode = true),
+                          ),
+                        if (_searchController.text.isNotEmpty)
+                          IconButton(
+                            icon: const Icon(Icons.clear),
+                            tooltip: 'مسح البحث',
+                            onPressed: () => _clearSearch(context),
+                          ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: IconButton(
+                            icon: const Icon(Icons.search),
+                            tooltip: 'بحث',
+                            onPressed: _toggleSearchDrawer,
+                          ),
+                        ),
+                      ],
               ),
               body: Column(
                 mainAxisSize: MainAxisSize.max,
@@ -338,6 +406,10 @@ class _MainPageState extends State<MainPage> {
                                         state.searchTerm.isNotEmpty,
                                     highlights:
                                         state.highlightMap[verse.key] ?? [],
+                                    selectionMode: _selectionMode,
+                                    selected: _selectedKeys.contains(verse.key),
+                                    onSelectToggle: () =>
+                                        _toggleVerseSelection(verse.key),
                                   );
                                 },
                                 separatorBuilder: (context, index) =>
@@ -359,6 +431,11 @@ class _MainPageState extends State<MainPage> {
             canPop: false,
             onPopInvokedWithResult: (didPop, _) async {
               if (didPop == false && context.mounted) {
+                // If in selection mode, exit it first
+                if (_selectionMode) {
+                  _exitSelectionMode();
+                  return;
+                }
                 // If search is open or searchTerm is not empty, clear and collapse
                 if (_showSearchDrawer || _searchController.text.isNotEmpty) {
                   setState(() {

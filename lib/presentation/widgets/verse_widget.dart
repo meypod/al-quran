@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:al_quran/core/data/model/quran_verse.dart';
-import 'package:al_quran/core/data/model/surah.dart';
 import 'package:al_quran/locator.dart';
 import 'package:al_quran/core/bloc/quran/quran_bloc.dart';
 
@@ -13,40 +12,59 @@ class VerseWidget extends StatelessWidget {
   final QuranVerse verse;
   final bool isSearchResult;
   final List<(int, int)> highlights;
+  final bool selectionMode;
+  final bool selected;
+  final VoidCallback? onSelectToggle;
 
   const VerseWidget({
     super.key,
     required this.verse,
     required this.isSearchResult,
     required this.highlights,
+    this.selectionMode = false,
+    this.selected = false,
+    this.onSelectToggle,
   });
+
+  /// Resolves the display name "SurahName (arabicId)" for a verse, or '' if unknown.
+  static String surahNameFor(QuranVerse verse) {
+    final quranBloc = getIt<QuranBloc>();
+    if (quranBloc.state is QuranLoaded) {
+      final surah = (quranBloc.state as QuranLoaded).surahs.elementAtOrNull(
+        verse.surahId - 1,
+      );
+      if (surah != null) {
+        return "${surah.name} (${toArabicNumber(verse.surahId)})";
+      }
+    }
+    return '';
+  }
+
+  /// Clipboard format: verse text + number, then surah name, each ending with \n.
+  static String copyText(QuranVerse verse, String surahName) {
+    final verseLine =
+        verse.verseText +
+        (verse.verseNumber == 0
+            ? ''
+            : ' ﴿${toArabicNumber(verse.verseNumber)}﴾');
+    return '$verseLine\n$surahName\n';
+  }
 
   @override
   Widget build(BuildContext context) {
-    String? surahName;
-    if (isSearchResult) {
-      final quranBloc = getIt<QuranBloc>();
-      if (quranBloc.state is QuranLoaded) {
-        final surah =
-            (quranBloc.state as QuranLoaded).surahs.elementAtOrNull(
-              verse.surahId - 1,
-            ) ??
-            Surah(
-              // unlikely to happen, but added just to be safe
-              id: verse.surahId,
-              name: '',
-              type: '',
-              totalVerses: 0,
-              startsAtJuz: 0,
-              endsAtJuz: 0,
-              hasBismillah: false,
-            );
-        surahName = "${surah.name} (${toArabicNumber(verse.surahId)})";
-      }
-    }
+    final surahName = isSearchResult ? surahNameFor(verse) : '';
+    final hasSurahName = surahName.isNotEmpty;
     return ListTile(
+      selected: selectionMode && selected,
+      onTap: selectionMode ? onSelectToggle : null,
+      leading: selectionMode
+          ? Checkbox(
+              value: selected,
+              onChanged: (_) => onSelectToggle?.call(),
+            )
+          : null,
       title: buildHighlightedText(context),
-      subtitle: surahName != null && surahName.isNotEmpty
+      subtitle: hasSurahName
           ? Row(
               textDirection: TextDirection.rtl,
               children: [
@@ -58,12 +76,13 @@ class VerseWidget extends StatelessWidget {
                     style: const TextStyle(color: Colors.grey),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.copy, size: 18),
-                  tooltip: 'نسخ',
-                  visualDensity: VisualDensity.compact,
-                  onPressed: () => _copyVerse(context, surahName!),
-                ),
+                if (!selectionMode)
+                  IconButton(
+                    icon: const Icon(Icons.copy, size: 18),
+                    tooltip: 'نسخ',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => _copyVerse(context, surahName),
+                  ),
               ],
             )
           : null,
@@ -71,13 +90,7 @@ class VerseWidget extends StatelessWidget {
   }
 
   void _copyVerse(BuildContext context, String surahName) {
-    final verseLine =
-        verse.verseText +
-        (verse.verseNumber == 0
-            ? ''
-            : ' ﴿${toArabicNumber(verse.verseNumber)}﴾');
-    final text = '$verseLine\n$surahName\n';
-    Clipboard.setData(ClipboardData(text: text));
+    Clipboard.setData(ClipboardData(text: copyText(verse, surahName)));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('تم النسخ', textDirection: TextDirection.rtl),
