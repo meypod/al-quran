@@ -8,7 +8,7 @@ import 'package:al_quran/core/bloc/quran/quran_bloc.dart';
 
 import '../../core/utils/arabic_number_util.dart';
 
-class VerseWidget extends StatelessWidget {
+class VerseWidget extends StatefulWidget {
   final QuranVerse verse;
   final bool isSearchResult;
   final List<(int, int)> highlights;
@@ -55,28 +55,36 @@ class VerseWidget extends StatelessWidget {
   }
 
   @override
+  State<VerseWidget> createState() => _VerseWidgetState();
+}
+
+class _VerseWidgetState extends State<VerseWidget> {
+  /// True while the row's context menu is open; highlights the row one shade.
+  bool _menuOpen = false;
+
+  /// Last pointer-down position, used to anchor the long-press menu.
+  Offset? _pressPosition;
+
+  QuranVerse get _verse => widget.verse;
+
+  @override
   Widget build(BuildContext context) {
-    final surahName = isSearchResult ? surahNameFor(verse) : '';
+    final surahName = widget.isSearchResult
+        ? VerseWidget.surahNameFor(_verse)
+        : '';
     final hasSurahName = surahName.isNotEmpty;
-    final canBookmark =
-        !selectionMode && onBookmarkToggle != null && verse.verseNumber != 0;
-    return ListTile(
-      selected: selectionMode && selected,
-      onTap: selectionMode ? onSelectToggle : null,
-      leading: selectionMode
-          ? Checkbox(value: selected, onChanged: (_) => onSelectToggle?.call())
-          : canBookmark
-          ? IconButton(
-              icon: Icon(
-                isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                size: 30,
-                color: isBookmarked
-                    ? Theme.of(context).colorScheme.primary
-                    : null,
-              ),
-              tooltip: isBookmarked ? 'إزالة العلامة' : 'إضافة علامة',
-              visualDensity: VisualDensity.compact,
-              onPressed: onBookmarkToggle,
+    final bookmarkable =
+        widget.onBookmarkToggle != null && _verse.verseNumber != 0;
+    final tile = ListTile(
+      selected: widget.selectionMode && widget.selected,
+      tileColor: _menuOpen
+          ? Theme.of(context).colorScheme.surfaceContainerHigh
+          : null,
+      onTap: widget.selectionMode ? widget.onSelectToggle : null,
+      leading: widget.selectionMode
+          ? Checkbox(
+              value: widget.selected,
+              onChanged: (_) => widget.onSelectToggle?.call(),
             )
           : null,
       title: buildHighlightedText(context),
@@ -92,21 +100,146 @@ class VerseWidget extends StatelessWidget {
                     style: const TextStyle(color: Colors.grey),
                   ),
                 ),
-                if (!selectionMode)
+                if (!widget.selectionMode)
                   IconButton(
-                    icon: const Icon(Icons.copy, size: 18),
+                    icon: const Icon(Icons.copy, size: 26),
                     tooltip: 'نسخ',
                     visualDensity: VisualDensity.compact,
                     onPressed: () => _copyVerse(context, surahName),
+                  ),
+                if (!widget.selectionMode && bookmarkable)
+                  IconButton(
+                    icon: Icon(
+                      widget.isBookmarked
+                          ? Icons.bookmark
+                          : Icons.bookmark_border,
+                      size: 26,
+                      color: widget.isBookmarked
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
+                    ),
+                    tooltip: widget.isBookmarked
+                        ? 'إزالة العلامة'
+                        : 'إضافة علامة',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: widget.onBookmarkToggle,
                   ),
               ],
             )
           : null,
     );
+
+    // Normal reading view has no inline buttons; expose copy/bookmark through a
+    // context menu on long-press (mobile) or right-click (desktop). InkWell
+    // gives the press ripple while holding.
+    if (widget.selectionMode || widget.isSearchResult || !bookmarkable) {
+      return tile;
+    }
+    return InkWell(
+      onTapDown: (d) => _pressPosition = d.globalPosition,
+      onLongPress: () {
+        final position = _pressPosition;
+        if (position != null) _showRowMenu(context, position);
+      },
+      onSecondaryTapDown: (d) => _showRowMenu(context, d.globalPosition),
+      child: tile,
+    );
+  }
+
+  Future<void> _showRowMenu(BuildContext context, Offset globalPosition) async {
+    const double menuWidth = 220;
+    final Size screen = MediaQuery.of(context).size;
+    final double left = globalPosition.dx
+        .clamp(8.0, screen.width - menuWidth - 8)
+        .toDouble();
+    final double top = globalPosition.dy
+        .clamp(8.0, screen.height - 120)
+        .toDouble();
+    // One tonal step off the app background so the menu stands out in both
+    // light and dark modes.
+    final Color menuColor = Theme.of(context).colorScheme.surfaceContainerLow;
+
+    setState(() => _menuOpen = true);
+    await showGeneralDialog<void>(
+      context: context,
+      barrierLabel: 'menu',
+      barrierColor: Colors.transparent,
+      barrierDismissible: true,
+      transitionDuration: const Duration(milliseconds: 100),
+      transitionBuilder: (context, animation, _, child) =>
+          FadeTransition(opacity: animation, child: child),
+      pageBuilder: (dialogContext, _, _) {
+        return Stack(
+          children: [
+            Positioned(
+              left: left,
+              top: top,
+              width: menuWidth,
+              child: Material(
+                color: menuColor,
+                elevation: 8,
+                borderRadius: BorderRadius.circular(8),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _menuItem(
+                      dialogContext,
+                      widget.isBookmarked
+                          ? Icons.bookmark
+                          : Icons.bookmark_border,
+                      widget.isBookmarked ? 'إزالة العلامة' : 'إضافة علامة',
+                      widget.onBookmarkToggle,
+                    ),
+                    _menuItem(
+                      dialogContext,
+                      Icons.copy,
+                      'نسخ',
+                      () =>
+                          _copyVerse(context, VerseWidget.surahNameFor(_verse)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+    if (mounted) setState(() => _menuOpen = false);
+  }
+
+  Widget _menuItem(
+    BuildContext dialogContext,
+    IconData icon,
+    String label,
+    VoidCallback? onTap,
+  ) {
+    return InkWell(
+      onTap: onTap == null
+          ? null
+          : () {
+              Navigator.of(dialogContext).pop();
+              onTap();
+            },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          textDirection: TextDirection.rtl,
+          children: [
+            Icon(icon, size: 20),
+            const SizedBox(width: 12),
+            Text(label, textDirection: TextDirection.rtl),
+          ],
+        ),
+      ),
+    );
   }
 
   void _copyVerse(BuildContext context, String surahName) {
-    Clipboard.setData(ClipboardData(text: copyText(verse, surahName)));
+    Clipboard.setData(
+      ClipboardData(text: VerseWidget.copyText(_verse, surahName)),
+    );
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('تم النسخ', textDirection: TextDirection.rtl),
@@ -117,22 +250,22 @@ class VerseWidget extends StatelessWidget {
 
   // If isSearchResult and highlights is not empty, highlight the text
   Widget buildHighlightedText(BuildContext context) {
-    if (!isSearchResult || highlights.isEmpty) {
+    if (!widget.isSearchResult || widget.highlights.isEmpty) {
       return Text(
-        verse.verseText +
-            (verse.verseNumber == 0
+        _verse.verseText +
+            (_verse.verseNumber == 0
                 ? ''
-                : ' ﴿${toArabicNumber(verse.verseNumber)}﴾'),
+                : ' ﴿${toArabicNumber(_verse.verseNumber)}﴾'),
         textDirection: TextDirection.rtl,
         textAlign: TextAlign.right,
       );
     }
 
-    final text = verse.verseText;
+    final text = _verse.verseText;
     final defaultStyle = DefaultTextStyle.of(context).style;
     final List<InlineSpan> spans = [];
     int current = 0;
-    for (final (start, end) in highlights) {
+    for (final (start, end) in widget.highlights) {
       if (start > current) {
         spans.add(
           TextSpan(text: text.substring(current, start), style: defaultStyle),
@@ -143,18 +276,8 @@ class VerseWidget extends StatelessWidget {
           text: text.substring(start, end),
           style: defaultStyle.copyWith(
             backgroundColor: Theme.of(context).brightness == Brightness.light
-                ? const Color.fromARGB(
-                    255,
-                    255,
-                    241,
-                    117,
-                  ) // intense in light mode
-                : const Color.fromARGB(
-                    104,
-                    255,
-                    246,
-                    161,
-                  ), // less intense in dark mode
+                ? const Color.fromARGB(255, 255, 241, 117) // intense in light
+                : const Color.fromARGB(104, 255, 246, 161), // softer in dark
           ),
         ),
       );
@@ -164,10 +287,10 @@ class VerseWidget extends StatelessWidget {
       spans.add(TextSpan(text: text.substring(current), style: defaultStyle));
     }
     // Add verse number at the end
-    if (verse.verseNumber != 0) {
+    if (_verse.verseNumber != 0) {
       spans.add(
         TextSpan(
-          text: ' ﴿${toArabicNumber(verse.verseNumber)}﴾',
+          text: ' ﴿${toArabicNumber(_verse.verseNumber)}﴾',
           style: defaultStyle,
         ),
       );
