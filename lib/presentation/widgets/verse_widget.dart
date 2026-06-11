@@ -65,6 +65,11 @@ class _VerseWidgetState extends State<VerseWidget> {
   /// Last pointer-down position, used to anchor the long-press menu.
   Offset? _pressPosition;
 
+  /// True while a mouse hovers the row. Touch input produces no hover events,
+  /// so this distinguishes desktop (mouse) from mobile (touch): on desktop we
+  /// drop the ripple/long-press layer so primary clicks reach text selection.
+  bool _mouseOver = false;
+
   QuranVerse get _verse => widget.verse;
 
   @override
@@ -130,19 +135,42 @@ class _VerseWidgetState extends State<VerseWidget> {
     );
 
     // Normal reading view has no inline buttons; expose copy/bookmark through a
-    // context menu on long-press (mobile) or right-click (desktop). InkWell
-    // gives the press ripple while holding.
+    // context menu on long-press (touch) or right-click (desktop).
     if (widget.selectionMode || widget.isSearchResult || !bookmarkable) {
       return tile;
     }
-    return InkWell(
-      onTapDown: (d) => _pressPosition = d.globalPosition,
-      onLongPress: () {
-        final position = _pressPosition;
-        if (position != null) _showRowMenu(context, position);
+    return MouseRegion(
+      onEnter: (_) {
+        if (!_mouseOver) setState(() => _mouseOver = true);
       },
-      onSecondaryTapDown: (d) => _showRowMenu(context, d.globalPosition),
-      child: tile,
+      onExit: (_) {
+        if (_mouseOver) setState(() => _mouseOver = false);
+      },
+      // Right-click opens the menu on desktop without touching text selection.
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onSecondaryTapDown: (d) => _showRowMenu(context, d.globalPosition),
+        child: Stack(
+          children: [
+            tile,
+            // Touch only: a ripple + long-press layer over the row. Removed
+            // while a mouse hovers, so desktop clicks/drags select text.
+            if (!_mouseOver)
+              Positioned.fill(
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(
+                    onTapDown: (d) => _pressPosition = d.globalPosition,
+                    onLongPress: () {
+                      final position = _pressPosition;
+                      if (position != null) _showRowMenu(context, position);
+                    },
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
