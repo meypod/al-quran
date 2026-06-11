@@ -81,6 +81,9 @@ class _VerseWidgetState extends State<VerseWidget> {
     final bookmarkable =
         widget.onBookmarkToggle != null && _verse.verseNumber != 0;
     final tile = ListTile(
+      mouseCursor: widget.selectionMode
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.text,
       selected: widget.selectionMode && widget.selected,
       tileColor: _menuOpen
           ? Theme.of(context).colorScheme.surfaceContainerHigh
