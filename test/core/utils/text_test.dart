@@ -87,4 +87,17 @@ void main() {
       expect(regexifySearchTerm('مأمن').hasMatch(muumin), false);
     });
   });
+
+  group('regexifySearchTerm waqf-mark spacing', () {
+    // In the Uthmani rasm a waqf mark is flanked by spaces between two words.
+    const text = 'ٱلْكِتَـٰبَ ۗ كَذَٰلِكَ';
+
+    test('single query space bridges a space-flanked waqf mark', () {
+      expect(regexifySearchTerm('الكتاب كذلک').hasMatch(text), true);
+    });
+
+    test('multiple query spaces still match', () {
+      expect(regexifySearchTerm('الكتاب  كذلک').hasMatch(text), true);
+    });
+  });
 }

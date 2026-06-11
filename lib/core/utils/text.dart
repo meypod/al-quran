@@ -50,6 +50,11 @@ final String _alifBody = _classBody(alifRegExp);
 final String _yaBody = _classBody(yaRegExp);
 final String _hamzaBody = _classBody(hamzaRegExp);
 final String _neutralHamzaBody = _classBody(neutralHamzaRegExp);
+// In the Uthmani rasm a waqf mark sits between two words flanked by spaces
+// (e.g. "...بَ ۗ كَ..."). The mark itself is an abnormal char, but the extra
+// space around it is not, so a single query space could not bridge the gap.
+// Treat a query space as a run of whitespace and interleaved abnormal chars.
+final String _abnormalBody = _classBody(abnormalChars);
 
 RegExp regexifySearchTerm(String searchTerm) {
   // Use the abnormalChars pattern as the diacritics/abnormal chars between letters
@@ -75,6 +80,8 @@ RegExp regexifySearchTerm(String searchTerm) {
       regexChar = yaRegExp.pattern;
     } else if (differentKafs.hasMatch(char)) {
       regexChar = differentKafs.pattern;
+    } else if (char == ' ') {
+      regexChar = '[\\s$_abnormalBody]+';
     } else {
       regexChar = RegExp.escape(char);
     }
