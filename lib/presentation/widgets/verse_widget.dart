@@ -1,5 +1,6 @@
 // Widget to render a Quran verse with number at the end
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:al_quran/core/data/model/quran_verse.dart';
 import 'package:al_quran/core/data/model/surah.dart';
@@ -46,13 +47,42 @@ class VerseWidget extends StatelessWidget {
     return ListTile(
       title: buildHighlightedText(context),
       subtitle: surahName != null && surahName.isNotEmpty
-          ? Text(
-              surahName,
+          ? Row(
               textDirection: TextDirection.rtl,
-              textAlign: TextAlign.right,
-              style: const TextStyle(color: Colors.grey),
+              children: [
+                Expanded(
+                  child: Text(
+                    surahName,
+                    textDirection: TextDirection.rtl,
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.copy, size: 18),
+                  tooltip: 'نسخ',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => _copyVerse(context, surahName!),
+                ),
+              ],
             )
           : null,
+    );
+  }
+
+  void _copyVerse(BuildContext context, String surahName) {
+    final verseLine =
+        verse.verseText +
+        (verse.verseNumber == 0
+            ? ''
+            : ' ﴿${toArabicNumber(verse.verseNumber)}﴾');
+    final text = '$verseLine\n$surahName\n';
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('تم النسخ', textDirection: TextDirection.rtl),
+        duration: Duration(seconds: 1),
+      ),
     );
   }
 
