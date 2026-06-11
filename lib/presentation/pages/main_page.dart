@@ -203,6 +203,146 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
+  /// Builds the top bar. The title is centered between the leading icons and
+  /// the action icons; with a long surah name and several actions present it
+  /// gets squeezed and ellipsized. When the measured title can't fit the
+  /// available centered width, drop it from the first row and render it full
+  /// width in a second row ([AppBar.bottom]) instead.
+  PreferredSizeWidget _buildAppBar(
+    BuildContext context,
+    FilteredQuranLoaded state,
+    String surahName,
+    double toolbarHeight,
+  ) {
+    const double kBtn = 48.0; // kMinInteractiveDimension
+    const double kPad = 16.0; // horizontal padding around a padded action
+    const double kLeading = 100.0; // leadingWidth
+
+    final titleText = _selectionMode
+        ? 'تم تحديد ${toArabicNumber(_selectedKeys.length)}'
+        : surahName;
+
+    // Estimate the trailing actions width to know how much centered space the
+    // title actually has (a centered title stays centered only within
+    // width - 2 * max(left, right)).
+    double right;
+    if (_selectionMode) {
+      right = kBtn /* copy */ + kBtn + kPad /* close, padded */;
+    } else {
+      right = kBtn /* bookmarks */;
+      if (state.searchTerm.isNotEmpty && state.filteredVerses.isNotEmpty) {
+        right += kBtn; // checklist
+      }
+      if (_searchController.text.isNotEmpty) right += kBtn; // clear
+      right += kBtn + kPad; // search, padded
+    }
+
+    final titleStyle =
+        Theme.of(context).appBarTheme.titleTextStyle ??
+        Theme.of(context).textTheme.titleLarge;
+    final tp = TextPainter(
+      text: TextSpan(text: titleText, style: titleStyle),
+      textDirection: TextDirection.rtl,
+      maxLines: 1,
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout();
+
+    final double width = MediaQuery.sizeOf(context).width;
+    final double available =
+        width - 2 * (kLeading > right ? kLeading : right) - kPad;
+    final bool overflow = tp.width > available;
+
+    return AppBar(
+      toolbarHeight: toolbarHeight.clamp(56.0, 120.0),
+      title: overflow ? null : Text(titleText, textAlign: TextAlign.center),
+      centerTitle: true,
+      leadingWidth: kLeading,
+      leading: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.menu_book),
+              tooltip: 'سور القرآن',
+              onPressed: () => _openSurahList(context),
+            ),
+            IconButton(
+              icon: const Icon(Icons.format_size),
+              tooltip: 'تغيير حجم الخط',
+              onPressed: _toggleFontDrawer,
+            ),
+          ],
+        ),
+      ),
+      actions: _selectionMode
+          ? [
+              IconButton(
+                icon: const Icon(Icons.copy),
+                tooltip: 'نسخ المحدد',
+                onPressed: _selectedKeys.isEmpty
+                    ? null
+                    : () => _copySelectedVerses(state.filteredVerses),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: IconButton(
+                  icon: const Icon(Icons.close),
+                  tooltip: 'إلغاء',
+                  onPressed: _exitSelectionMode,
+                ),
+              ),
+            ]
+          : [
+              IconButton(
+                icon: const Icon(Icons.bookmarks_outlined),
+                tooltip: 'العلامات',
+                onPressed: () => _openBookmarks(context),
+              ),
+              if (state.searchTerm.isNotEmpty &&
+                  state.filteredVerses.isNotEmpty)
+                IconButton(
+                  icon: const Icon(Icons.checklist),
+                  tooltip: 'تحديد الآيات',
+                  onPressed: () => setState(() => _selectionMode = true),
+                ),
+              if (_searchController.text.isNotEmpty)
+                IconButton(
+                  icon: const Icon(Icons.clear),
+                  tooltip: 'مسح البحث',
+                  onPressed: () => _clearSearch(context),
+                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: IconButton(
+                  icon: const Icon(Icons.search),
+                  tooltip: 'بحث',
+                  onPressed: _toggleSearchDrawer,
+                ),
+              ),
+            ],
+      bottom: overflow
+          ? PreferredSize(
+              preferredSize: Size.fromHeight(tp.height + 16.0),
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 16.0,
+                  right: 16.0,
+                  bottom: 8.0,
+                ),
+                child: Text(
+                  titleText,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: titleStyle,
+                ),
+              ),
+            )
+          : null,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredQuranBloc = getIt<FilteredQuranBloc>();
@@ -255,83 +395,7 @@ class _MainPageState extends State<MainPage> {
             final double toolbarHeight = 56.0 + (fontSize - 22.0) * 1.2;
 
             scaffoldContent = Scaffold(
-              appBar: AppBar(
-                toolbarHeight: toolbarHeight.clamp(56.0, 120.0),
-                title: Text(
-                  _selectionMode
-                      ? 'تم تحديد ${toArabicNumber(_selectedKeys.length)}'
-                      : surahName,
-                  textAlign: TextAlign.center,
-                ),
-                centerTitle: true,
-                leadingWidth: 100,
-                leading: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.menu_book),
-                        tooltip: 'سور القرآن',
-                        onPressed: () => _openSurahList(context),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.format_size),
-                        tooltip: 'تغيير حجم الخط',
-                        onPressed: _toggleFontDrawer,
-                      ),
-                    ],
-                  ),
-                ),
-                actions: _selectionMode
-                    ? [
-                        IconButton(
-                          icon: const Icon(Icons.copy),
-                          tooltip: 'نسخ المحدد',
-                          onPressed: _selectedKeys.isEmpty
-                              ? null
-                              : () =>
-                                    _copySelectedVerses(state.filteredVerses),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: IconButton(
-                            icon: const Icon(Icons.close),
-                            tooltip: 'إلغاء',
-                            onPressed: _exitSelectionMode,
-                          ),
-                        ),
-                      ]
-                    : [
-                        IconButton(
-                          icon: const Icon(Icons.bookmarks_outlined),
-                          tooltip: 'العلامات',
-                          onPressed: () => _openBookmarks(context),
-                        ),
-                        if (state.searchTerm.isNotEmpty &&
-                            state.filteredVerses.isNotEmpty)
-                          IconButton(
-                            icon: const Icon(Icons.checklist),
-                            tooltip: 'تحديد الآيات',
-                            onPressed: () =>
-                                setState(() => _selectionMode = true),
-                          ),
-                        if (_searchController.text.isNotEmpty)
-                          IconButton(
-                            icon: const Icon(Icons.clear),
-                            tooltip: 'مسح البحث',
-                            onPressed: () => _clearSearch(context),
-                          ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: IconButton(
-                            icon: const Icon(Icons.search),
-                            tooltip: 'بحث',
-                            onPressed: _toggleSearchDrawer,
-                          ),
-                        ),
-                      ],
-              ),
+              appBar: _buildAppBar(context, state, surahName, toolbarHeight),
               body: Column(
                 mainAxisSize: MainAxisSize.max,
                 children: [
@@ -473,7 +537,8 @@ class _MainPageState extends State<MainPage> {
                                     final verse = state.filteredVerses[index];
                                     return VerseWidget(
                                       verse: verse,
-                                      isSearchResult: state.searchTerm.isNotEmpty,
+                                      isSearchResult:
+                                          state.searchTerm.isNotEmpty,
                                       highlights:
                                           state.highlightMap[verse.key] ?? [],
                                       selectionMode: _selectionMode,
