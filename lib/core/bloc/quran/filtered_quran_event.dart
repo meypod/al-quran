@@ -27,7 +27,15 @@ class FilteredQuranUpdateSearchTerm extends FilteredQuranEvent {
   FilteredQuranUpdateSearchTerm(this.searchTerm, this.searchAllQuran);
 }
 
-class FilteredQuranUpdateScrollOffset extends FilteredQuranEvent {
-  final double scrollOffset;
-  FilteredQuranUpdateScrollOffset(this.scrollOffset);
+class FilteredQuranUpdateScrollIndex extends FilteredQuranEvent {
+  final int scrollIndex;
+  final double scrollAlignment;
+  FilteredQuranUpdateScrollIndex(this.scrollIndex, this.scrollAlignment);
+}
+
+/// Switches to [surahId], clears search, and positions the list at the verse.
+class FilteredQuranJumpToVerse extends FilteredQuranEvent {
+  final int surahId;
+  final int verseNumber;
+  FilteredQuranJumpToVerse(this.surahId, this.verseNumber);
 }

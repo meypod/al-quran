@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
+import '../../core/bloc/bookmark/bookmark_bloc.dart';
 import '../../core/bloc/font_size/font_size_bloc.dart';
 import '../../core/bloc/quran/filtered_quran_event.dart';
 import '../../core/bloc/quran/filtered_quran_state.dart';
@@ -34,11 +38,67 @@ class _MainPageState extends State<MainPage> {
     _submitSearch(context);
   }
 
-  void _saveScrollOffset() {
-    QuranPreferences.setScrollPosition(_scrollController.offset);
+  final ItemScrollController _itemScrollController = ItemScrollController();
+  final ItemPositionsListener _itemPositionsListener =
+      ItemPositionsListener.create();
+  Timer? _saveScrollDebounce;
+
+  @override
+  void initState() {
+    super.initState();
+    // ScrollablePositionedList doesn't reliably bubble ScrollEndNotification,
+    // so persist the resting position by watching item positions instead.
+    _itemPositionsListener.itemPositions.addListener(_onPositionsChanged);
   }
 
-  final ScrollController _scrollController = ScrollController();
+  @override
+  void dispose() {
+    _itemPositionsListener.itemPositions.removeListener(_onPositionsChanged);
+    _saveScrollDebounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onPositionsChanged() {
+    // Debounce: only persist once scrolling has settled.
+    _saveScrollDebounce?.cancel();
+    _saveScrollDebounce = Timer(const Duration(milliseconds: 200), () {
+      if (!mounted) return;
+      final (index, alignment) = _topPosition();
+      getIt<FilteredQuranBloc>().add(
+        FilteredQuranUpdateScrollIndex(index, alignment),
+      );
+    });
+  }
+
+  /// A scroll anchor as (index, alignment): the first visible verse whose
+  /// leading edge sits within the viewport. Its alignment is the leading edge
+  /// as a fraction of the viewport in [0, 1] — exactly what [jumpTo] expects —
+  /// and it encodes the partial scroll of the verse above it, so restoring it
+  /// reproduces the exact mid-verse offset. Defaults to (0, 0).
+  (int, double) _topPosition() {
+    final positions = _itemPositionsListener.itemPositions.value;
+    final visible = positions.where(
+      (p) => p.itemTrailingEdge > 0 && p.itemLeadingEdge < 1,
+    );
+    if (visible.isEmpty) return (0, 0.0);
+    // Prefer the top-most item that starts at/below the viewport top; its
+    // leading edge is in [0, 1), a valid alignment.
+    final anchored = visible.where((p) => p.itemLeadingEdge >= 0);
+    if (anchored.isNotEmpty) {
+      final a = anchored.reduce(
+        (x, y) => x.itemLeadingEdge <= y.itemLeadingEdge ? x : y,
+      );
+      return (a.index, a.itemLeadingEdge);
+    }
+    // Fallback: a single verse taller than the viewport covers the top. Its
+    // leading edge is negative (not a valid alignment), so pin it to the top;
+    // the within-verse offset can't be expressed without a pixel API.
+    final top = visible.reduce(
+      (x, y) => x.itemLeadingEdge <= y.itemLeadingEdge ? x : y,
+    );
+    return (top.index, 0.0);
+  }
 
   bool _showFontDrawer = false;
   bool _showSearchDrawer = false;
@@ -62,7 +122,9 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _copySelectedVerses(List<QuranVerse> verses) {
-    final selected = verses.where((v) => _selectedKeys.contains(v.key));
+    final selected = verses
+        .where((v) => _selectedKeys.contains(v.key))
+        .toList();
     final text = selected
         .map((v) => VerseWidget.copyText(v, VerseWidget.surahNameFor(v)))
         .join();
@@ -70,26 +132,13 @@ class _MainPageState extends State<MainPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'تم نسخ ${versesCountPhrase(_selectedKeys.length)}',
+          'تم نسخ ${versesCountPhrase(selected.length)}',
           textDirection: TextDirection.rtl,
         ),
         duration: const Duration(seconds: 1),
       ),
     );
     _exitSelectionMode();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_saveScrollOffset);
-  }
-
-  @override
-  void dispose() {
-    _scrollController.removeListener(_saveScrollOffset);
-    _scrollController.dispose();
-    super.dispose();
   }
 
   void _toggleFontDrawer() {
@@ -123,11 +172,45 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
+  /// Clears the search term, collapses the search drawer and drops focus.
+  /// Called before navigating to the surah list or bookmarks screen.
+  void _closeSearch(BuildContext context) {
+    FocusScope.of(context).unfocus();
+    _searchController.clear();
+    setState(() => _showSearchDrawer = false);
+    context.read<FilteredQuranBloc>().add(
+      FilteredQuranUpdateSearchTerm('', _searchAllQuran),
+    );
+  }
+
+  Future<void> _openSurahList(BuildContext context) async {
+    _closeSearch(context);
+    final selected = await context.push<Surah>('/surahs');
+    if (selected is Surah && context.mounted) {
+      context.read<FilteredQuranBloc>().add(
+        FilteredQuranChangeSurah(selected.id),
+      );
+    }
+  }
+
+  Future<void> _openBookmarks(BuildContext context) async {
+    _closeSearch(context);
+    final selected = await context.push<QuranVerse>('/bookmarks');
+    if (selected is QuranVerse && context.mounted) {
+      context.read<FilteredQuranBloc>().add(
+        FilteredQuranJumpToVerse(selected.surahId, selected.verseNumber),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredQuranBloc = getIt<FilteredQuranBloc>();
-    return BlocProvider<FilteredQuranBloc>.value(
-      value: filteredQuranBloc,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<FilteredQuranBloc>.value(value: filteredQuranBloc),
+        BlocProvider<BookmarkBloc>.value(value: getIt<BookmarkBloc>()),
+      ],
       child: BlocConsumer<FilteredQuranBloc, FilteredQuranState>(
         listenWhen: (previous, current) =>
             current is FilteredQuranLoaded && previous != current,
@@ -166,17 +249,6 @@ class _MainPageState extends State<MainPage> {
             final String surahName = state.searchTerm.isEmpty
                 ? selectedSurah?.name ?? ""
                 : "بحث";
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (_scrollController.hasClients &&
-                  _scrollController.offset != state.scrollOffset) {
-                final maxScroll = _scrollController.position.maxScrollExtent;
-                final minScroll = _scrollController.position.minScrollExtent;
-                final target = state.scrollOffset.clamp(minScroll, maxScroll);
-                if (target != _scrollController.offset) {
-                  _scrollController.jumpTo(target);
-                }
-              }
-            });
             final double fontSize = context.select<FontSizeBloc, double>(
               (bloc) => bloc.state.fontSize,
             );
@@ -201,14 +273,7 @@ class _MainPageState extends State<MainPage> {
                       IconButton(
                         icon: const Icon(Icons.menu_book),
                         tooltip: 'سور القرآن',
-                        onPressed: () async {
-                          final selected = await context.push<Surah>('/surahs');
-                          if (selected is Surah && context.mounted) {
-                            context.read<FilteredQuranBloc>().add(
-                              FilteredQuranChangeSurah(selected.id),
-                            );
-                          }
-                        },
+                        onPressed: () => _openSurahList(context),
                       ),
                       IconButton(
                         icon: const Icon(Icons.format_size),
@@ -238,6 +303,11 @@ class _MainPageState extends State<MainPage> {
                         ),
                       ]
                     : [
+                        IconButton(
+                          icon: const Icon(Icons.bookmarks_outlined),
+                          tooltip: 'العلامات',
+                          onPressed: () => _openBookmarks(context),
+                        ),
                         if (state.searchTerm.isNotEmpty &&
                             state.filteredVerses.isNotEmpty)
                           IconButton(
@@ -379,42 +449,51 @@ class _MainPageState extends State<MainPage> {
                         state.filteredVerses.isEmpty &&
                             state.searchTerm.isNotEmpty
                         ? const Center(child: Text('لا توجد نتائج'))
-                        : NotificationListener<ScrollNotification>(
-                            onNotification: (notification) {
-                              if (notification is ScrollEndNotification) {
-                                context.read<FilteredQuranBloc>().add(
-                                  FilteredQuranUpdateScrollOffset(
-                                    _scrollController.offset,
+                        : SelectionArea(
+                            child: BlocBuilder<BookmarkBloc, BookmarkState>(
+                              builder: (context, bookmarkState) {
+                                return ScrollablePositionedList.separated(
+                                  // Keyed by position so a same-surah jump
+                                  // recreates the list at the target verse;
+                                  // stable during scrolling (no state emit).
+                                  key: PageStorageKey(
+                                    "surah-scroll-${state.selectedSurah?.id ?? 0}-${state.scrollIndex}",
                                   ),
+                                  itemScrollController: _itemScrollController,
+                                  itemPositionsListener: _itemPositionsListener,
+                                  initialScrollIndex: state.scrollIndex.clamp(
+                                    0,
+                                    state.filteredVerses.isEmpty
+                                        ? 0
+                                        : state.filteredVerses.length - 1,
+                                  ),
+                                  initialAlignment: state.scrollAlignment,
+                                  itemCount: state.filteredVerses.length,
+                                  itemBuilder: (context, index) {
+                                    final verse = state.filteredVerses[index];
+                                    return VerseWidget(
+                                      verse: verse,
+                                      isSearchResult: state.searchTerm.isNotEmpty,
+                                      highlights:
+                                          state.highlightMap[verse.key] ?? [],
+                                      selectionMode: _selectionMode,
+                                      selected: _selectedKeys.contains(
+                                        verse.key,
+                                      ),
+                                      onSelectToggle: () =>
+                                          _toggleVerseSelection(verse.key),
+                                      isBookmarked: bookmarkState.isBookmarked(
+                                        verse.key,
+                                      ),
+                                      onBookmarkToggle: () => context
+                                          .read<BookmarkBloc>()
+                                          .add(ToggleBookmark(verse.key)),
+                                    );
+                                  },
+                                  separatorBuilder: (context, index) =>
+                                      const Divider(height: 1),
                                 );
-                              }
-                              return false;
-                            },
-                            child: SelectionArea(
-                              child: ListView.separated(
-                                key: PageStorageKey(
-                                  "surah-scroll-${state.selectedSurah?.id ?? 0}", // 0 is for search
-                                ),
-                                controller: _scrollController,
-                                itemCount: state.filteredVerses.length,
-                                cacheExtent: 100,
-                                itemBuilder: (context, index) {
-                                  final verse = state.filteredVerses[index];
-                                  return VerseWidget(
-                                    verse: verse,
-                                    isSearchResult:
-                                        state.searchTerm.isNotEmpty,
-                                    highlights:
-                                        state.highlightMap[verse.key] ?? [],
-                                    selectionMode: _selectionMode,
-                                    selected: _selectedKeys.contains(verse.key),
-                                    onSelectToggle: () =>
-                                        _toggleVerseSelection(verse.key),
-                                  );
-                                },
-                                separatorBuilder: (context, index) =>
-                                    const Divider(height: 1),
-                              ),
+                              },
                             ),
                           ),
                   ),

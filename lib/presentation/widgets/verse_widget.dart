@@ -15,6 +15,8 @@ class VerseWidget extends StatelessWidget {
   final bool selectionMode;
   final bool selected;
   final VoidCallback? onSelectToggle;
+  final bool isBookmarked;
+  final VoidCallback? onBookmarkToggle;
 
   const VerseWidget({
     super.key,
@@ -24,6 +26,8 @@ class VerseWidget extends StatelessWidget {
     this.selectionMode = false,
     this.selected = false,
     this.onSelectToggle,
+    this.isBookmarked = false,
+    this.onBookmarkToggle,
   });
 
   /// Resolves the display name "SurahName (arabicId)" for a verse, or '' if unknown.
@@ -54,13 +58,25 @@ class VerseWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final surahName = isSearchResult ? surahNameFor(verse) : '';
     final hasSurahName = surahName.isNotEmpty;
+    final canBookmark =
+        !selectionMode && onBookmarkToggle != null && verse.verseNumber != 0;
     return ListTile(
       selected: selectionMode && selected,
       onTap: selectionMode ? onSelectToggle : null,
       leading: selectionMode
-          ? Checkbox(
-              value: selected,
-              onChanged: (_) => onSelectToggle?.call(),
+          ? Checkbox(value: selected, onChanged: (_) => onSelectToggle?.call())
+          : canBookmark
+          ? IconButton(
+              icon: Icon(
+                isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                size: 30,
+                color: isBookmarked
+                    ? Theme.of(context).colorScheme.primary
+                    : null,
+              ),
+              tooltip: isBookmarked ? 'إزالة العلامة' : 'إضافة علامة',
+              visualDensity: VisualDensity.compact,
+              onPressed: onBookmarkToggle,
             )
           : null,
       title: buildHighlightedText(context),

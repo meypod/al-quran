@@ -35,7 +35,8 @@ String toEasternArabicNumber(int number) {
 var toArabicNumber = toIndicArabicNumber;
 
 /// Arabic counted-noun phrase for "آية" (verse) following CLDR plural rules.
-/// 1 → آية واحدة, 2 → آيتان, 3–10 (mod 100) → عدد آيات,
+/// Returned in the accusative (object of نسخ): 1 → آية واحدة, 2 → آيتين,
+/// 3–10 (mod 100) → عدد آيات,
 /// otherwise → عدد آية. Returns the noun phrase only (no verb).
 String versesCountPhrase(int count) {
   if (count == 1) return 'آية واحدة';

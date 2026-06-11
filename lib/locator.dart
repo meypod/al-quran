@@ -1,16 +1,19 @@
 import 'package:get_it/get_it.dart';
 import 'package:al_quran/core/bloc/font_size/font_size_bloc.dart';
+import 'package:al_quran/core/bloc/bookmark/bookmark_bloc.dart';
 import 'core/bloc/quran/filtered_quran_bloc.dart';
 import 'core/bloc/quran/quran_bloc.dart';
 import 'core/bloc/surah_list/surah_list_bloc.dart';
 import 'presentation/pages/main_page.dart';
 import 'presentation/pages/surah_list_page.dart';
+import 'presentation/pages/bookmarks_page.dart';
 import 'package:go_router/go_router.dart';
 
 final GetIt getIt = GetIt.instance;
 
 void setupLocator() {
   getIt.registerLazySingleton(() => FontSizeBloc()..add(LoadFontSize()));
+  getIt.registerLazySingleton(() => BookmarkBloc()..add(LoadBookmarks()));
   getIt.registerSingleton(QuranBloc());
   final quranBloc = getIt<QuranBloc>();
   getIt.registerSingleton<FilteredQuranBloc>(
@@ -44,6 +47,10 @@ void setupLocator() {
             GoRoute(
               path: 'surahs',
               builder: (context, state) => const SurahListPage(),
+            ),
+            GoRoute(
+              path: 'bookmarks',
+              builder: (context, state) => const BookmarksPage(),
             ),
           ],
         ),

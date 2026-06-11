@@ -13,7 +13,8 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
   late final Stream<QuranState> _quranStream;
 
   int _selectedSurahId = 1;
-  double _scrollOffset = 0.0;
+  int _scrollIndex = 0;
+  double _scrollAlignment = 0.0;
   String _searchTerm = '';
   bool _searchAllQuran = false;
 
@@ -48,30 +49,59 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
     on<FilteredQuranInit>((event, emit) async {
       final prefs = await Future.wait([
         QuranPreferences.getSelectedSurah(),
-        QuranPreferences.getScrollPosition(),
+        QuranPreferences.getScrollIndex(),
         QuranPreferences.getSearchTerm(),
         QuranPreferences.getSearchAllQuran(),
+        QuranPreferences.getScrollAlignment(),
       ]);
       var savedSurahId = prefs[0] as int? ?? _selectedSurahId;
       if (savedSurahId == 0) savedSurahId = 1;
       _selectedSurahId = savedSurahId;
-      _scrollOffset = (prefs[1] as double?) ?? _scrollOffset;
+      _scrollIndex = (prefs[1] as int?) ?? _scrollIndex;
       _searchTerm = (prefs[2] as String?) ?? _searchTerm;
       _searchAllQuran = (prefs[3] as bool?) ?? _searchAllQuran;
+      _scrollAlignment = (prefs[4] as double?) ?? _scrollAlignment;
       emit(_buildLoaded(event.quranState));
     });
 
     on<FilteredQuranChangeSurah>((event, emit) async {
       _selectedSurahId = event.surahId;
-      _scrollOffset = 0.0;
+      _scrollIndex = 0;
+      _scrollAlignment = 0.0;
+      _searchTerm = '';
       await Future.wait([
         QuranPreferences.setSelectedSurah(_selectedSurahId),
-        QuranPreferences.setScrollPosition(_scrollOffset),
+        QuranPreferences.setScrollIndex(_scrollIndex),
+        QuranPreferences.setScrollAlignment(_scrollAlignment),
+        QuranPreferences.setSearchTerm(_searchTerm),
       ]);
       final quranState = _getQuranLoaded();
       if (quranState != null) {
         emit(_buildLoaded(quranState));
       }
+    });
+
+    on<FilteredQuranJumpToVerse>((event, emit) async {
+      final quranState = _getQuranLoaded();
+      if (quranState == null) return;
+      _selectedSurahId = event.surahId;
+      _searchTerm = '';
+      _scrollIndex = 0;
+      _scrollAlignment = 0.0;
+      // Build once to locate the verse within the (bismillah-prefixed) list.
+      final loaded = _buildLoaded(quranState);
+      final idx = loaded.filteredVerses.indexWhere(
+        (v) =>
+            v.surahId == event.surahId && v.verseNumber == event.verseNumber,
+      );
+      _scrollIndex = idx < 0 ? 0 : idx;
+      await Future.wait([
+        QuranPreferences.setSelectedSurah(_selectedSurahId),
+        QuranPreferences.setSearchTerm(_searchTerm),
+        QuranPreferences.setScrollIndex(_scrollIndex),
+        QuranPreferences.setScrollAlignment(_scrollAlignment),
+      ]);
+      emit(_buildLoaded(quranState));
     });
 
     on<FilteredQuranUpdateSearchTerm>((event, emit) async {
@@ -87,9 +117,13 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
       }
     });
 
-    on<FilteredQuranUpdateScrollOffset>((event, emit) async {
-      _scrollOffset = event.scrollOffset;
-      await QuranPreferences.setScrollPosition(_scrollOffset);
+    on<FilteredQuranUpdateScrollIndex>((event, emit) async {
+      _scrollIndex = event.scrollIndex;
+      _scrollAlignment = event.scrollAlignment;
+      await Future.wait([
+        QuranPreferences.setScrollIndex(_scrollIndex),
+        QuranPreferences.setScrollAlignment(_scrollAlignment),
+      ]);
     });
   }
 
@@ -115,7 +149,8 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
     return FilteredQuranLoaded(
       selectedSurah: selectedSurah,
       filteredVerses: filtered,
-      scrollOffset: _scrollOffset,
+      scrollIndex: _scrollIndex,
+      scrollAlignment: _scrollAlignment,
       searchTerm: _searchTerm,
       searchAllQuran: _searchAllQuran,
       highlightMap: highlightMap,
