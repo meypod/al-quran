@@ -64,12 +64,12 @@
     <release version="1.1.0" date="2026-06-12">
       <url type="details">https://github.com/meypod/al-quran/releases/tag/v1.1.0</url>
       <description>
-        <p>Small improvements and new features</p>
+        <p>Quality-of-life improvements and new features</p>
         <ul>
-          <li>Text can be selected and copied now</li>
-          <li>You can save bookmarks now</li>
-          <li>Fixed some search issues</li>
-          <li>Improved keyboard navigation</li>
+            <li>Select and copy Quran text</li>
+            <li>Save and revisit bookmarks</li>
+            <li>More reliable search results</li>
+            <li>Smoother keyboard navigation</li>
         </ul>
       </description>
     </release>
