@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../core/bloc/font_size/font_size_bloc.dart';
 import '../../core/data/model/surah.dart';
 
@@ -49,7 +50,13 @@ class _SurahListPageState extends State<SurahListPage> {
       (bloc) => bloc.state.fontSize,
     );
     final double toolbarHeight = 56.0 + (fontSize - 22.0) * 1.2;
-    return Scaffold(
+    return CallbackShortcuts(
+      bindings: <ShortcutActivator, VoidCallback>{
+        const SingleActivator(LogicalKeyboardKey.escape): () {
+          if (context.canPop()) context.pop();
+        },
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('سور القرآن'),
         centerTitle: true,
@@ -105,6 +112,7 @@ class _SurahListPageState extends State<SurahListPage> {
                       textDirection: TextDirection.rtl,
                       child: TextField(
                         controller: _searchController,
+                        autofocus: true,
                         decoration: InputDecoration(
                           labelText: 'بحث عن سورة',
                           border: const OutlineInputBorder(),
@@ -137,6 +145,7 @@ class _SurahListPageState extends State<SurahListPage> {
           }
           return const Center(child: Text('لم يتم العثور على سور.'));
         },
+      ),
       ),
     );
   }

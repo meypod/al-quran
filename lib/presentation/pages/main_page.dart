@@ -56,6 +56,7 @@ class _MainPageState extends State<MainPage> {
     _itemPositionsListener.itemPositions.removeListener(_onPositionsChanged);
     _saveScrollDebounce?.cancel();
     _searchController.dispose();
+    _searchFocusNode.dispose();
     _selectionAreaFocusNode.dispose();
     super.dispose();
   }
@@ -104,6 +105,7 @@ class _MainPageState extends State<MainPage> {
   bool _showFontDrawer = false;
   bool _showSearchDrawer = false;
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   bool _searchAllQuran = false;
 
   bool _selectionMode = false;
@@ -177,14 +179,80 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
-  void _submitSearch(BuildContext context) {
-    final bloc = context.read<FilteredQuranBloc>();
-    bloc.add(
+  void _submitSearch([BuildContext? _]) {
+    getIt<FilteredQuranBloc>().add(
       FilteredQuranUpdateSearchTerm(
         _searchController.text.trim(),
         _searchAllQuran,
       ),
     );
+  }
+
+  /// Opens the search drawer and moves keyboard focus into the field so the
+  /// user can type immediately (bound to `/` and Ctrl+F).
+  void _focusSearch() {
+    setState(() {
+      _showSearchDrawer = true;
+      _showFontDrawer = false;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _searchFocusNode.requestFocus();
+    });
+  }
+
+  /// Escape unwinds the most specific active mode first, mirroring the back
+  /// button: selection mode, then an open/non-empty search, then any focus.
+  void _handleEscape() {
+    if (_selectionMode) {
+      _exitSelectionMode();
+      return;
+    }
+    if (_showSearchDrawer || _searchController.text.isNotEmpty) {
+      setState(() {
+        _showSearchDrawer = false;
+        _searchController.clear();
+      });
+      _submitSearch();
+      return;
+    }
+    _clearTextSelection();
+    if (mounted) FocusScope.of(context).unfocus();
+  }
+
+  /// Number of verses fully visible in the viewport; used for page scrolling.
+  int _visibleVerseCount() {
+    final positions = _itemPositionsListener.itemPositions.value;
+    final fully = positions.where(
+      (p) => p.itemLeadingEdge >= 0 && p.itemTrailingEdge <= 1,
+    );
+    return fully.isNotEmpty ? fully.length : 1;
+  }
+
+  void _scrollToIndex(int index, {double alignment = 0.0}) {
+    if (!_itemScrollController.isAttached) return;
+    _itemScrollController.scrollTo(
+      index: index,
+      alignment: alignment,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+    );
+  }
+
+  void _scrollByVerses(int delta) {
+    final state = getIt<FilteredQuranBloc>().state;
+    if (state is! FilteredQuranLoaded) return;
+    final count = state.filteredVerses.length;
+    if (count == 0) return;
+    final (index, _) = _topPosition();
+    _scrollToIndex((index + delta).clamp(0, count - 1));
+  }
+
+  void _scrollToEdge({required bool end}) {
+    final state = getIt<FilteredQuranBloc>().state;
+    if (state is! FilteredQuranLoaded) return;
+    final count = state.filteredVerses.length;
+    if (count == 0) return;
+    _scrollToIndex(end ? count - 1 : 0);
   }
 
   /// Clears the search term, collapses the search drawer and drops focus.
@@ -442,6 +510,7 @@ class _MainPageState extends State<MainPage> {
                                 Expanded(
                                   child: TextField(
                                     controller: _searchController,
+                                    focusNode: _searchFocusNode,
                                     decoration: InputDecoration(
                                       labelText: 'بحث',
                                       border: const OutlineInputBorder(),
@@ -587,7 +656,7 @@ class _MainPageState extends State<MainPage> {
             );
           }
           // Wrap with PopScope to handle back button (Android/iOS predictive back)
-          return PopScope(
+          final popScope = PopScope(
             canPop: false,
             onPopInvokedWithResult: (didPop, _) async {
               if (didPop == false && context.mounted) {
@@ -630,6 +699,60 @@ class _MainPageState extends State<MainPage> {
               }
             },
             child: scaffoldContent,
+          );
+
+          // Desktop/physical-keyboard navigation. A focused text field consumes
+          // character and caret keys before they reach here, so editing the
+          // search box never triggers these.
+          return CallbackShortcuts(
+            bindings: <ShortcutActivator, VoidCallback>{
+              const SingleActivator(LogicalKeyboardKey.slash): _focusSearch,
+              const SingleActivator(LogicalKeyboardKey.keyF, control: true):
+                  _focusSearch,
+              const SingleActivator(LogicalKeyboardKey.escape): _handleEscape,
+              const SingleActivator(LogicalKeyboardKey.arrowDown): () =>
+                  _scrollByVerses(1),
+              const SingleActivator(LogicalKeyboardKey.arrowUp): () =>
+                  _scrollByVerses(-1),
+              const SingleActivator(LogicalKeyboardKey.pageDown): () =>
+                  _scrollByVerses(_visibleVerseCount()),
+              const SingleActivator(LogicalKeyboardKey.pageUp): () =>
+                  _scrollByVerses(-_visibleVerseCount()),
+              const SingleActivator(LogicalKeyboardKey.home): () =>
+                  _scrollToEdge(end: false),
+              const SingleActivator(LogicalKeyboardKey.end): () =>
+                  _scrollToEdge(end: true),
+              const SingleActivator(
+                LogicalKeyboardKey.equal,
+                control: true,
+              ): () =>
+                  getIt<FontSizeBloc>().add(IncreaseFontSize()),
+              const SingleActivator(
+                LogicalKeyboardKey.add,
+                control: true,
+              ): () =>
+                  getIt<FontSizeBloc>().add(IncreaseFontSize()),
+              const SingleActivator(LogicalKeyboardKey.numpadAdd): () =>
+                  getIt<FontSizeBloc>().add(IncreaseFontSize()),
+              const SingleActivator(
+                LogicalKeyboardKey.minus,
+                control: true,
+              ): () =>
+                  getIt<FontSizeBloc>().add(DecreaseFontSize()),
+              const SingleActivator(LogicalKeyboardKey.numpadSubtract): () =>
+                  getIt<FontSizeBloc>().add(DecreaseFontSize()),
+              const SingleActivator(
+                LogicalKeyboardKey.keyB,
+                control: true,
+              ): () =>
+                  _openBookmarks(context),
+              const SingleActivator(
+                LogicalKeyboardKey.keyL,
+                control: true,
+              ): () =>
+                  _openSurahList(context),
+            },
+            child: Focus(autofocus: true, child: popScope),
           );
         },
       ),

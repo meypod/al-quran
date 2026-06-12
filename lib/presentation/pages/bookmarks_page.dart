@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -108,10 +109,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text(
-          'حذف كل العلامات؟',
-          textDirection: TextDirection.rtl,
-        ),
+        title: const Text('حذف كل العلامات؟', textDirection: TextDirection.rtl),
         content: const Text(
           'سيتم حذف جميع العلامات المحفوظة.',
           textDirection: TextDirection.rtl,
@@ -150,11 +148,7 @@ class _BookmarksPageState extends State<BookmarksPage> {
         ),
       );
       entries.add(
-        _BookmarkEntry(
-          verse: verse,
-          surahName: surahName,
-          haystack: haystack,
-        ),
+        _BookmarkEntry(verse: verse, surahName: surahName, haystack: haystack),
       );
     }
     return entries;
@@ -173,77 +167,85 @@ class _BookmarksPageState extends State<BookmarksPage> {
       (bloc) => bloc.state.fontSize,
     );
     final double toolbarHeight = 56.0 + (fontSize - 22.0) * 1.2;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('العلامات'),
-        centerTitle: true,
-        toolbarHeight: toolbarHeight.clamp(56.0, 120.0),
-        actions: [
-          BlocBuilder<BookmarkBloc, BookmarkState>(
-            bloc: _bloc,
-            builder: (context, state) => IconButton(
-              icon: const Icon(Icons.delete_sweep_outlined),
-              tooltip: 'حذف الكل',
-              onPressed: state.bookmarks.isEmpty ? null : _clearAll,
+    return CallbackShortcuts(
+      bindings: <ShortcutActivator, VoidCallback>{
+        const SingleActivator(LogicalKeyboardKey.escape): () {
+          if (context.canPop()) context.pop();
+        },
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('العلامات'),
+          centerTitle: true,
+          toolbarHeight: toolbarHeight.clamp(56.0, 120.0),
+          actions: [
+            BlocBuilder<BookmarkBloc, BookmarkState>(
+              bloc: _bloc,
+              builder: (context, state) => IconButton(
+                icon: const Icon(Icons.delete_sweep_outlined),
+                tooltip: 'حذف الكل',
+                onPressed: state.bookmarks.isEmpty ? null : _clearAll,
+              ),
             ),
-          ),
-        ],
-      ),
-      body: BlocBuilder<BookmarkBloc, BookmarkState>(
-        bloc: _bloc,
-        builder: (context, state) {
-          final term = _searchController.text.trimLeft();
-          final all = _resolve(state.bookmarks);
-          final entries = _filter(all, term);
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).canvasColor,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        labelText: 'بحث في العلامات',
-                        border: const OutlineInputBorder(),
-                        filled: true,
-                        fillColor: Theme.of(context).canvasColor,
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: _clearSearch,
-                              )
-                            : null,
+          ],
+        ),
+        body: BlocBuilder<BookmarkBloc, BookmarkState>(
+          bloc: _bloc,
+          builder: (context, state) {
+            final term = _searchController.text.trimLeft();
+            final all = _resolve(state.bookmarks);
+            final entries = _filter(all, term);
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).canvasColor,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: TextField(
+                        controller: _searchController,
+                        autofocus: true,
+                        decoration: InputDecoration(
+                          labelText: 'بحث في العلامات',
+                          border: const OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Theme.of(context).canvasColor,
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: _clearSearch,
+                                )
+                              : null,
+                        ),
+                        style: const TextStyle(fontFamily: 'nonexisting'),
                       ),
-                      style: const TextStyle(fontFamily: 'nonexisting'),
                     ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: entries.isEmpty
-                    ? Center(
-                        child: Text(
-                          all.isEmpty ? 'لا توجد علامات' : 'لا توجد نتائج',
-                          textDirection: TextDirection.rtl,
+                Expanded(
+                  child: entries.isEmpty
+                      ? Center(
+                          child: Text(
+                            all.isEmpty ? 'لا توجد علامات' : 'لا توجد نتائج',
+                            textDirection: TextDirection.rtl,
+                          ),
+                        )
+                      : ListView.separated(
+                          itemCount: entries.length,
+                          separatorBuilder: (context, index) =>
+                              const Divider(height: 1),
+                          itemBuilder: (context, index) =>
+                              _buildTile(context, entries[index]),
                         ),
-                      )
-                    : ListView.separated(
-                        itemCount: entries.length,
-                        separatorBuilder: (context, index) =>
-                            const Divider(height: 1),
-                        itemBuilder: (context, index) =>
-                            _buildTile(context, entries[index]),
-                      ),
-              ),
-            ],
-          );
-        },
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
