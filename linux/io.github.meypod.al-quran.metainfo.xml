@@ -21,6 +21,7 @@
       <li>Fast search functionality</li>
       <li>Customizable font size</li>
       <li>Remembers your exact reading position</li>
+      <li>Bookmarks</li>
       <li>Open-source, ad-free, and lightweight</li>
     </ul>
     <p>
@@ -57,6 +58,12 @@
       <url type="details">https://github.com/meypod/al-quran/releases/tag/v1.0.0</url>
       <description>
         <p>Initial Release</p>
+      </description>
+    </release>
+    <release version="1.1.0" date="2026-06-12">
+      <url type="details">https://github.com/meypod/al-quran/releases/tag/v1.1.0</url>
+      <description>
+        <p>Adds text selection and bookmarks functionality. Also fixes some issues with text search.</p>
       </description>
     </release>
   </releases>
