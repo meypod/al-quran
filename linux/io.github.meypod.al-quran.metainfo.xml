@@ -6,7 +6,14 @@
   <name>Al-Quran - Simple</name>
   <summary>A simple open-source Quran reader</summary>
   <content_rating type="oars-1.0" />
-
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+    <control>touch</control>
+  </supports>
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
 
   <description>
     <p>**This app is only available in Arabic.**</p>
@@ -54,16 +61,16 @@
   </developer>
 
   <releases>
-    <release version="1.0.0" date="2025-11-08">
-      <url type="details">https://github.com/meypod/al-quran/releases/tag/v1.0.0</url>
-      <description>
-        <p>Initial Release</p>
-      </description>
-    </release>
     <release version="1.1.0" date="2026-06-12">
       <url type="details">https://github.com/meypod/al-quran/releases/tag/v1.1.0</url>
       <description>
         <p>Adds text selection and bookmarks functionality. Also fixes some issues with text search.</p>
+      </description>
+    </release>
+    <release version="1.0.0" date="2025-11-08">
+      <url type="details">https://github.com/meypod/al-quran/releases/tag/v1.0.0</url>
+      <description>
+        <p>Initial Release</p>
       </description>
     </release>
   </releases>
