@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/bloc/font_size/font_size_bloc.dart';
 import 'locator.dart';
@@ -66,6 +67,32 @@ class MyApp extends StatelessWidget {
             ),
             themeMode: ThemeMode.system,
             routerConfig: getIt<GoRouter>(),
+            // Keep the system status/navigation bars transparent with
+            // theme-aware icon contrast so they blend with the scaffold
+            // instead of showing the platform default color.
+            builder: (context, child) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              final iconBrightness = isDark
+                  ? Brightness.light
+                  : Brightness.dark;
+              return AnnotatedRegion<SystemUiOverlayStyle>(
+                value: SystemUiOverlayStyle(
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness: iconBrightness,
+                  statusBarBrightness: isDark
+                      ? Brightness.dark
+                      : Brightness.light,
+                  // Faint black wash behind the nav buttons on dark; left
+                  // clear on light.
+                  systemNavigationBarColor: isDark
+                      ? Colors.black.withValues(alpha: 0.1)
+                      : Colors.white.withValues(alpha: 0.1),
+                  systemNavigationBarIconBrightness: iconBrightness,
+                  systemNavigationBarContrastEnforced: false,
+                ),
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
           );
         },
       ),
