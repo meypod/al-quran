@@ -3,11 +3,11 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName      "AlQuran"
-#define MyAppVersion   "1.0.0"
+#define MyAppVersion   "1.1.0"
 #define MyAppPublisher "Meypod"
 #define MyAppURL       "https://github.com/meypod/al-quran/"
 #define MyAppExeName   "al_quran.exe"
-#define CStartYear     "2025" 
+#define CStartYear     "2026" 
 #define CurrentYear    GetDateTimeString('yyyy','','')
 
 [Setup]
@@ -70,7 +70,7 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [INI]
-Filename: "{app}\innosetup.ini"; Section: "Info"; Key: "setupVersion"; String: "1.0.0"
+Filename: "{app}\innosetup.ini"; Section: "Info"; Key: "setupVersion"; String: "1.1.0"
 
 [Code]
 procedure ListFolders(const Directory: string; Folders: TStrings);
