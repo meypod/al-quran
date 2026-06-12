@@ -56,6 +56,7 @@ class _MainPageState extends State<MainPage> {
     _itemPositionsListener.itemPositions.removeListener(_onPositionsChanged);
     _saveScrollDebounce?.cancel();
     _searchController.dispose();
+    _selectionAreaFocusNode.dispose();
     super.dispose();
   }
 
@@ -108,7 +109,20 @@ class _MainPageState extends State<MainPage> {
   bool _selectionMode = false;
   final Set<String> _selectedKeys = {};
 
+  // Drives the verse-list [SelectionArea]. Dropping its focus clears any
+  // active native text selection.
+  final FocusNode _selectionAreaFocusNode = FocusNode();
+
+  /// Clears any active native text selection in the verse list.
+  void _clearTextSelection() => _selectionAreaFocusNode.unfocus();
+
+  void _enterSelectionMode() {
+    _clearTextSelection();
+    setState(() => _selectionMode = true);
+  }
+
   void _exitSelectionMode() {
+    _clearTextSelection();
     setState(() {
       _selectionMode = false;
       _selectedKeys.clear();
@@ -116,6 +130,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _toggleVerseSelection(String key) {
+    _clearTextSelection();
     setState(() {
       if (!_selectedKeys.remove(key)) _selectedKeys.add(key);
     });
@@ -304,7 +319,7 @@ class _MainPageState extends State<MainPage> {
                 IconButton(
                   icon: const Icon(Icons.checklist),
                   tooltip: 'تحديد الآيات',
-                  onPressed: () => setState(() => _selectionMode = true),
+                  onPressed: _enterSelectionMode,
                 ),
               if (_searchController.text.isNotEmpty)
                 IconButton(
@@ -514,6 +529,7 @@ class _MainPageState extends State<MainPage> {
                             state.searchTerm.isNotEmpty
                         ? const Center(child: Text('لا توجد نتائج'))
                         : SelectionArea(
+                            focusNode: _selectionAreaFocusNode,
                             child: BlocBuilder<BookmarkBloc, BookmarkState>(
                               builder: (context, bookmarkState) {
                                 return ScrollablePositionedList.separated(
