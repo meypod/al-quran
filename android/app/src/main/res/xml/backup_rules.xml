@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Auto Backup rules (Android 11 / API 30 and below).
+  Backs up only the Flutter SharedPreferences store, which holds user state
+  such as bookmarks, font size and preference flags.
+  See https://developer.android.com/guide/topics/data/autobackup
+-->
+<full-backup-content>
+    <include domain="sharedpref" path="FlutterSharedPreferences.xml" />
+</full-backup-content>
