@@ -15,6 +15,7 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
   int _selectedSurahId = 1;
   int _scrollIndex = 0;
   double _scrollAlignment = 0.0;
+  int _navEpoch = 0;
   String _searchTerm = '';
   bool _searchAllQuran = false;
 
@@ -69,6 +70,7 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
       _scrollIndex = 0;
       _scrollAlignment = 0.0;
       _searchTerm = '';
+      _navEpoch++;
       await Future.wait([
         QuranPreferences.setSelectedSurah(_selectedSurahId),
         QuranPreferences.setScrollIndex(_scrollIndex),
@@ -88,6 +90,7 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
       _searchTerm = '';
       _scrollIndex = 0;
       _scrollAlignment = 0.0;
+      _navEpoch++;
       // Build once to locate the verse within the (bismillah-prefixed) list.
       final loaded = _buildLoaded(quranState);
       final idx = loaded.filteredVerses.indexWhere(
@@ -154,6 +157,7 @@ class FilteredQuranBloc extends Bloc<FilteredQuranEvent, FilteredQuranState> {
       searchTerm: _searchTerm,
       searchAllQuran: _searchAllQuran,
       highlightMap: highlightMap,
+      navEpoch: _navEpoch,
     );
   }
 

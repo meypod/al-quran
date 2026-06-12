@@ -20,6 +20,13 @@ class FilteredQuranLoaded extends FilteredQuranState {
   final String searchTerm;
   final bool searchAllQuran;
   final Map<String, List<(int, int)>> highlightMap;
+
+  /// Bumped on every explicit jump (bookmark/verse navigation). Carried into
+  /// the list's key so a jump always recreates the list — even when the target
+  /// index equals the last emitted [scrollIndex] (ordinary scrolls don't emit,
+  /// so [scrollIndex] alone can't distinguish a re-jump to the same verse).
+  final int navEpoch;
+
   FilteredQuranLoaded({
     required this.selectedSurah,
     required this.filteredVerses,
@@ -28,5 +35,6 @@ class FilteredQuranLoaded extends FilteredQuranState {
     required this.searchTerm,
     required this.searchAllQuran,
     this.highlightMap = const {},
+    this.navEpoch = 0,
   });
 }

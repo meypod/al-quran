@@ -602,11 +602,14 @@ class _MainPageState extends State<MainPage> {
                             child: BlocBuilder<BookmarkBloc, BookmarkState>(
                               builder: (context, bookmarkState) {
                                 return ScrollablePositionedList.separated(
-                                  // Keyed by position so a same-surah jump
-                                  // recreates the list at the target verse;
-                                  // stable during scrolling (no state emit).
+                                  // Keyed by surah + nav epoch so any explicit
+                                  // jump recreates the list at the target verse;
+                                  // stable during scrolling (scroll updates the
+                                  // index but emits no state, so the epoch — not
+                                  // scrollIndex — is what guarantees a re-jump to
+                                  // the same verse still rebuilds.
                                   key: PageStorageKey(
-                                    "surah-scroll-${state.selectedSurah?.id ?? 0}-${state.scrollIndex}",
+                                    "surah-scroll-${state.selectedSurah?.id ?? 0}-${state.navEpoch}",
                                   ),
                                   itemScrollController: _itemScrollController,
                                   itemPositionsListener: _itemPositionsListener,
