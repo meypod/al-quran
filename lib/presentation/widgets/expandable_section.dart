@@ -58,11 +58,11 @@ class _ExpandableSectionState extends State<ExpandableSection>
   @override
   Widget build(BuildContext context) {
     return SizeTransition(
-      axisAlignment: 1.0,
       sizeFactor: CurvedAnimation(
         parent: _controller,
         curve: widget.animationCurve,
       ),
+      alignment: AlignmentDirectional(-1.0, 1.0),
       child: widget.child,
     );
   }
